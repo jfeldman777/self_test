@@ -66,3 +66,7 @@ body {
     font-weight: bold;
   }
   
+
+  div.sliderBlock:{
+    margin:5px;
+  }

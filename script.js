@@ -52,7 +52,7 @@ function loadTest() {
   const params = new URLSearchParams(window.location.search);
   const idx = Number(params.get("test"));
   const test = testData.tests[idx];
-
+  document.getElementById("test-title").innerText = test.name;
   container.innerHTML = "";
 
   test.questions.forEach((q, qi) => {
@@ -64,7 +64,7 @@ function loadTest() {
     const div = document.createElement("div");
     div.className = "question";
 
-    div.innerHTML = `<div><b>${q.text}</b></div>`;
+    div.innerHTML = `<div><b>${q.text}</b></div><br>`;
 
     order.forEach( (originalAnswerIndex) => {
 
@@ -76,7 +76,7 @@ function loadTest() {
           <input type="range" min="0" max="10" value="0"
                  data-question="${qi}"
                  data-original="${originalAnswerIndex}">
-        </div>
+        </div><br>
       `;
     });
 
