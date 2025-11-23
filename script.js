@@ -154,6 +154,14 @@ function loadResult() {
     div.innerHTML += `
       <p>${meanings[k]}: <b>${r[k]}%</b></p>`;
   }
+
+
+      // --- Radar chart ---
+      const labels = Object.keys(r).map(k => meanings[k]);
+      const values = Object.keys(r).map(k => r[k]);
+  
+      drawRadarChart("chart", labels, values);
+  
 }
 
 
@@ -180,4 +188,75 @@ function loadHistory() {
 function clearHistory() {
   localStorage.removeItem("history");
   location.reload();
+}
+
+//-----------------------------------------------------
+// RADAR CHART FOR HISTORY
+//-----------------------------------------------------
+
+document.addEventListener("DOMContentLoaded", renderHistoryCharts);
+
+function renderHistoryCharts() {
+    const container = document.getElementById("charts-container");
+    if (!container) return;
+
+    const history = JSON.parse(localStorage.getItem("history") || "[]");
+
+    if (history.length === 0) {
+        container.innerHTML = "<p>No results yet.</p>";
+        return;
+    }
+
+    // получаем последний результат каждого теста
+    const lastByTest = {};
+    history.forEach(entry => lastByTest[entry.test] = entry);
+
+    Object.keys(lastByTest).forEach(testName => {
+        const item = lastByTest[testName];
+        const result = item.result;
+        const meanings = Object.keys(result);
+
+        // создаём card
+        const card = document.createElement("div");
+        card.className = "chart-card";
+
+        const title = document.createElement("div");
+        title.className = "chart-title";
+        title.innerText = `${testName} — ${item.time}`;
+        card.appendChild(title);
+
+        const canvas = document.createElement("canvas");
+        card.appendChild(canvas);
+        container.appendChild(card);
+
+        // данные для диаграммы
+        const labels = meanings.map(k => k);
+        const values = meanings.map(k => result[k]);
+
+        // строим radar chart
+        new Chart(canvas, {
+            type: "radar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: testName,
+                    data: values,
+                    fill: true,
+                    borderColor: "rgb(0, 80, 180)",
+                    backgroundColor: "rgba(0, 80, 180, 0.2)",
+                    pointBackgroundColor: "rgb(0, 80, 180)"
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    r: {
+                        suggestedMin: 0,
+                        suggestedMax: 100,
+                        ticks: { stepSize: 20 }
+                    }
+                }
+            }
+        });
+    });
 }

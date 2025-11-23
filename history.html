@@ -4,16 +4,18 @@
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
-  <title>History</title>
+  <title>History</title><script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
+  <h1>History</h1>
 
-<h1>Test History</h1>
+  <div id="charts-container" class="charts-grid"></div>
+  
+  <button class="btn" onclick="clearHistory()">Clear history</button>
+  <a class="btn" href="index.html">Home</a>
+  
 
-<div id="history-container"></div>
-
-<button class="btn" onclick="clearHistory()">Clear history</button>
-<a class="btn" href="index.html">Home</a>
 
 </body>
 </html>
