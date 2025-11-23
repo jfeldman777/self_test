@@ -1,10 +1,11 @@
 /* jshint esversion: 6 */
 
 let testData = {};
+let shuffledAnswers = {};   // <-- тут будет храниться порядок перемешивания
 
-//---------------------------------------------------
-// Загружаем JSON
-//---------------------------------------------------
+// ------------------------------------------------------
+// Загрузка JSON
+// ------------------------------------------------------
 fetch("data.json")
   .then(r => r.json())
   .then(d => {
@@ -16,12 +17,17 @@ fetch("data.json")
   });
 
 
-//---------------------------------------------------
-// INDEX: список тестов
-//---------------------------------------------------
+// ------------------------------------------------------
+// INDEX — список тестов
+// ------------------------------------------------------
 function loadIndex() {
   const list = document.getElementById("test-list");
   if (!list) return;
+
+  if (!testData.tests) {
+    list.innerHTML = "<p>No tests found.</p>";
+    return;
+  }
 
   list.innerHTML = "";
 
@@ -31,15 +37,14 @@ function loadIndex() {
         <a class="test-link" href="test.html?test=${i}">
           <b>${t.name}</b>
         </a>
-      </div>
-    `;
+      </div>`;
   });
 }
 
 
-//---------------------------------------------------
-// Загружаем ТЕСТ
-//---------------------------------------------------
+// ------------------------------------------------------
+// TEST — загрузка теста
+// ------------------------------------------------------
 function loadTest() {
   const container = document.getElementById("test-container");
   if (!container) return;
@@ -48,38 +53,41 @@ function loadTest() {
   const idx = Number(params.get("test"));
   const test = testData.tests[idx];
 
-  document.getElementById("test-title").innerText = test.name;
-
   container.innerHTML = "";
 
   test.questions.forEach((q, qi) => {
+
+    // ------- перемешиваем варианты -------
+    const order = [...q.answers.keys()].sort(() => Math.random() - 0.5);
+    shuffledAnswers[qi] = order;
+
     const div = document.createElement("div");
     div.className = "question";
 
-    let html = `<b>${q.text}</b><br><br>`;
+    div.innerHTML = `<div><b>${q.text}</b></div>`;
 
-    q.answers.forEach((a, ai) => {
-      html += `
-        <div class="slider-block">
-          <label>${a.text}</label><br>
+    order.forEach( (originalAnswerIndex) => {
+
+      const answerText = q.answers[originalAnswerIndex].text;
+
+      div.innerHTML += `
+        <div class="sliderBlock">
+          <label>${answerText}</label>
           <input type="range" min="0" max="10" value="0"
-                 class="slider"
                  data-question="${qi}"
-                 data-answer="${ai}">
+                 data-original="${originalAnswerIndex}">
         </div>
-        <br>
       `;
     });
 
-    div.innerHTML = html;
     container.appendChild(div);
   });
 }
 
 
-//---------------------------------------------------
-// Завершение теста
-//---------------------------------------------------
+// ------------------------------------------------------
+// FINISH — подсчёт результата
+// ------------------------------------------------------
 function finishTest() {
   const params = new URLSearchParams(window.location.search);
   const idx = Number(params.get("test"));
@@ -88,27 +96,34 @@ function finishTest() {
   let score = {};
   Object.keys(test.answersMeaning).forEach(k => score[k] = 0);
 
-  const sliders = document.querySelectorAll(".slider");
-
-  sliders.forEach(sl => {
-    let qi = sl.dataset.question;
-    let ai = sl.dataset.answer;
-    let val = Number(sl.value);
-    score[ai] += val;
+  // собираем данные из всех слайдеров
+  document.querySelectorAll("input[type=range]").forEach(sl => {
+    const originalIndex = sl.dataset.original;
+    const value = Number(sl.value);
+    score[originalIndex] += value;
   });
 
-  // сохраняем
+  // считаем проценты
+  let result = {};
+  let sumAll = Object.values(score).reduce((a,b)=>a+b,0);
+  if (sumAll === 0) sumAll = 1;
+
+  for (let k in score) {
+    result[k] = Math.round(100 * score[k] / sumAll);
+  }
+
+  // сохраняем last result
   localStorage.setItem("lastResult", JSON.stringify({
     testIndex: idx,
-    score
+    result
   }));
 
-  // история
+  // сохраняем в историю
   let history = JSON.parse(localStorage.getItem("history") || "[]");
   history.push({
     test: test.name,
     time: new Date().toLocaleString(),
-    score
+    result
   });
   localStorage.setItem("history", JSON.stringify(history));
 
@@ -116,34 +131,35 @@ function finishTest() {
 }
 
 
-//---------------------------------------------------
-// Вывод результата
-//---------------------------------------------------
+// ------------------------------------------------------
+// RESULT — вывод результата
+// ------------------------------------------------------
 function loadResult() {
   const div = document.getElementById("result-container");
   if (!div) return;
 
   const saved = JSON.parse(localStorage.getItem("lastResult"));
   if (!saved) {
-    div.innerHTML = "<p>No data.</p>";
+    div.innerHTML = "<p>No result.</p>";
     return;
   }
 
   const test = testData.tests[saved.testIndex];
   const meanings = test.answersMeaning;
-  const score = saved.score;
+  const r = saved.result;
 
   div.innerHTML = `<h3>${test.name}</h3>`;
 
-  for (let k in score) {
-    div.innerHTML += `<p>${meanings[k]}: <b>${score[k]}</b></p>`;
+  for (let k in r) {
+    div.innerHTML += `
+      <p>${meanings[k]}: <b>${r[k]}%</b></p>`;
   }
 }
 
 
-//---------------------------------------------------
-// История
-//---------------------------------------------------
+// ------------------------------------------------------
+// HISTORY
+// ------------------------------------------------------
 function loadHistory() {
   const div = document.getElementById("history-container");
   if (!div) return;
@@ -151,12 +167,13 @@ function loadHistory() {
   const h = JSON.parse(localStorage.getItem("history") || "[]");
 
   if (h.length === 0) {
-    div.innerHTML = "<p>No history.</p>";
+    div.innerHTML = "<p>No history yet.</p>";
     return;
   }
 
   h.forEach(e => {
-    div.innerHTML += `<p><b>${e.time}</b> • <i>${e.test}</i>: ${JSON.stringify(e.score)}</p>`;
+    div.innerHTML += `
+      <p><b>${e.time}</b> • <i>${e.test}</i> → ${JSON.stringify(e.result)}</p>`;
   });
 }
 
