@@ -1,13 +1,20 @@
+/* jshint esversion: 6 */
 /* Universal Radar Chart for any test */
 
 function drawRadarChart(containerId, labels, values) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    // Очищаем контейнер перед созданием нового canvas
+    container.innerHTML = '';
+    
     const count = labels.length;
 
     // Создаём canvas
     const canvas = document.createElement("canvas");
     canvas.width = 400;
     canvas.height = 400;
-    document.getElementById(containerId).appendChild(canvas);
+    container.appendChild(canvas);
 
     const ctx = canvas.getContext("2d");
     const cx = canvas.width / 2;
@@ -55,4 +62,18 @@ function drawRadarChart(containerId, labels, values) {
     // Заливка
     ctx.fillStyle = "rgba(0, 119, 255, 0.25)";
     ctx.fill();
+
+    // Рисуем значения (цифры) на точках
+    values.forEach((v, i) => {
+        const angle = i * angleStep - Math.PI / 2;
+        const r = (v / 100) * R;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(v + "%", x, y);
+    });
 }

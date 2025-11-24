@@ -67,21 +67,24 @@ body {
   }
   
 
-  div.sliderBlock:{
+  div.sliderBlock {
     margin:5px;
   }
   .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
     margin-top: 20px;
+    justify-content: flex-start;
 }
 
 .chart-card {
-    padding: 10px;
+    padding: 15px;
     border: 1px solid #ccc;
     border-radius: 10px;
     background: #fafafa;
+    flex: 0 0 auto;
+    min-width: 450px;
 }
 
 .chart-title {
