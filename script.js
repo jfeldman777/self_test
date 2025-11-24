@@ -52,6 +52,12 @@ function loadTest(){
   const idx = Number(params.get("test") || 0);
   const test = testData.tests[idx];
 
+  // Обновляем название теста
+  const titleElement = document.getElementById('test-title');
+  if (titleElement && test) {
+    titleElement.textContent = test.name;
+  }
+
   container.innerHTML = "";
 
   test.questions.forEach((q, qi) => {
