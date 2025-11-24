@@ -70,10 +70,15 @@ function drawRadarChart(containerId, labels, values) {
         const x = cx + Math.cos(angle) * r;
         const y = cy + Math.sin(angle) * r;
 
+        // Сдвигаем текст дальше от центра по направлению оси
+        const offset = 20; // расстояние от точки
+        const textX = x + Math.cos(angle) * offset;
+        const textY = y + Math.sin(angle) * offset;
+
         ctx.fillStyle = "#000";
         ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(v + "%", x, y);
+        ctx.fillText(v + "%", textX, textY);
     });
 }

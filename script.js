@@ -324,10 +324,24 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
     }
   }
 
-  // Получаем values в правильном порядке
-  const keys = Object.keys(valuesObj).sort((a, b) => Number(a) - Number(b));
-  const values = keys.map(k => valuesObj[k] || 0);
-  const count = values.length;
+  // Определяем количество осей на основе labels, если они есть, иначе из valuesObj
+  let count;
+  let keys;
+  let values;
+  
+  if (labels.length > 0) {
+    // Используем labels для определения количества осей
+    count = labels.length;
+    // Создаем keys на основе индексов labels (0, 1, 2, ...)
+    keys = Array.from({length: count}, (_, i) => String(i));
+    // Получаем values, используя все ключи из labels
+    values = keys.map(k => valuesObj[k] || 0);
+  } else {
+    // Если labels нет, используем valuesObj
+    keys = Object.keys(valuesObj).sort((a, b) => Number(a) - Number(b));
+    values = keys.map(k => valuesObj[k] || 0);
+    count = values.length;
+  }
 
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
@@ -420,11 +434,16 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
     const x = cx + R * Math.cos(ang);
     const y = cy + R * Math.sin(ang);
 
+    // Сдвигаем текст дальше от центра по направлению оси
+    const offset = 20; // расстояние от точки
+    const textX = x + Math.cos(ang) * offset;
+    const textY = y + Math.sin(ang) * offset;
+
     ctx.fillStyle = compareValuesObj ? "#0066ff" : "#000";
     ctx.font = compareValuesObj ? "bold 14px Arial" : "bold 16px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(v + "%", x, compareValuesObj ? y - 8 : y);
+    ctx.fillText(v + "%", textX, compareValuesObj ? textY - 8 : textY);
   });
 
   // Рисуем значения (цифры) на точках второй диаграммы, если есть
@@ -438,11 +457,16 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
       const x = cx + R * Math.cos(ang);
       const y = cy + R * Math.sin(ang);
 
+      // Сдвигаем текст дальше от центра по направлению оси
+      const offset = 20; // расстояние от точки
+      const textX = x + Math.cos(ang) * offset;
+      const textY = y + Math.sin(ang) * offset;
+
       ctx.fillStyle = "#ff6600";
       ctx.font = "bold 14px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(v + "%", x, y + 8);
+      ctx.fillText(v + "%", textX, textY + 8);
     });
   }
 }
