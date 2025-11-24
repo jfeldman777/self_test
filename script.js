@@ -278,18 +278,41 @@ function loadHistory(){
   h2Prof.textContent = 'Сравнить с профессией';
   div.appendChild(h2Prof);
 
+  // Создаем контейнер для горизонтального расположения профессий
+  const profContainer = document.createElement('div');
+  profContainer.className = 'professions-list';
+  div.appendChild(profContainer);
+
   profData.professions.forEach((p,pi)=>{
-    div.innerHTML += `
-      <label>
-        <input type="radio" name="prof" value="${pi}">
-        ${p.name}
-      </label><br>
+    const label = document.createElement('label');
+    label.className = 'prof-option';
+    label.innerHTML = `
+      <input type="radio" name="prof" value="${pi}">
+      ${p.name}
     `;
+    profContainer.appendChild(label);
   });
 
-  div.innerHTML += `<button onclick="compareProfession()">Сравнить</button>`;
+  // Создаем кнопку сравнения
+  const compareBtn = document.createElement('button');
+  compareBtn.className = 'btn';
+  compareBtn.textContent = 'Сравнить';
+  compareBtn.disabled = true;
+  compareBtn.onclick = compareProfession;
+  div.appendChild(compareBtn);
 
-  div.innerHTML += `<div id="prof-results"></div>`;
+  // Создаем контейнер для результатов
+  const profResultsDiv = document.createElement('div');
+  profResultsDiv.id = 'prof-results';
+  div.appendChild(profResultsDiv);
+
+  // Добавляем обработчики на радио-кнопки для обновления состояния кнопки
+  const radioButtons = profContainer.querySelectorAll('input[type="radio"]');
+  radioButtons.forEach(radio => {
+    radio.addEventListener('change', () => {
+      compareBtn.disabled = !document.querySelector('input[name="prof"]:checked');
+    });
+  });
 }
 
 
