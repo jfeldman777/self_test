@@ -366,7 +366,7 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
       // Подпись оси (немного дальше от центра)
       const labelX = cx + Math.cos(angle) * (maxR + 30);
       const labelY = cy + Math.sin(angle) * (maxR + 30);
-      ctx.font = "12px Arial";
+      ctx.font = "18px Arial";
       ctx.fillStyle = "#333";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -421,7 +421,7 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
     const y = cy + R * Math.sin(ang);
 
     ctx.fillStyle = compareValuesObj ? "#0066ff" : "#000";
-    ctx.font = compareValuesObj ? "bold 10px Arial" : "bold 11px Arial";
+    ctx.font = compareValuesObj ? "bold 14px Arial" : "bold 16px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(v + "%", x, compareValuesObj ? y - 8 : y);
@@ -439,7 +439,7 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
       const y = cy + R * Math.sin(ang);
 
       ctx.fillStyle = "#ff6600";
-      ctx.font = "bold 10px Arial";
+      ctx.font = "bold 14px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(v + "%", x, y + 8);

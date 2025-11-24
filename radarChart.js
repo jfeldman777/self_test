@@ -36,7 +36,7 @@ function drawRadarChart(containerId, labels, values) {
         ctx.strokeStyle = "#aaa";
         ctx.stroke();
 
-        ctx.font = "14px Arial";
+        ctx.font = "18px Arial";
         ctx.textAlign = "center";
         ctx.fillText(label, x, y - 5);
     });
@@ -71,7 +71,7 @@ function drawRadarChart(containerId, labels, values) {
         const y = cy + Math.sin(angle) * r;
 
         ctx.fillStyle = "#000";
-        ctx.font = "bold 12px Arial";
+        ctx.font = "bold 16px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(v + "%", x, y);
