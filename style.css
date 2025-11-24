@@ -139,3 +139,79 @@ body {
 .prof-option input[type="radio"] {
     margin-right: 8px;
 }
+
+.prof-toolbar {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.prof-select-btn {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.prof-select-btn.active {
+    background: #4a6cff;
+    color: #fff;
+    border-color: #4a6cff;
+}
+
+.prof-form {
+    margin-top: 20px;
+}
+
+.prof-name-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.prof-name-input {
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+}
+
+.prof-tests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.prof-test-card {
+    flex: 1 1 320px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    background: #fff;
+}
+
+.prof-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.prof-slider-row label {
+    flex: 1 1 50%;
+}
+
+.prof-slider {
+    flex: 1 1 40%;
+}
+
+.prof-value {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+}

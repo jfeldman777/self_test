@@ -1,0 +1,59 @@
+{
+    "professions": [
+      {
+        "name": "Водитель автобуса",
+        "levels":       [0, 1, 1, 2, 2, 0, 0, 0],
+        "coding_small": [1, 3, 3, 0, 0, 0],
+        "coding_medium":[0, 2, 3, 0, 1, 1],
+        "coding_large": [0, 1, 3, 0, 2, 0],
+        "warming":      [0, 2, 3, 0]
+      },
+  
+      {
+        "name": "Хирург",
+        "levels":       [1, 1, 2, 3, 5, 1, 0, 0],
+        "coding_small": [0, 1, 5, 0, 0, 0],
+        "coding_medium":[0, 1, 4, 1, 0, 0],
+        "coding_large": [0, 0, 4, 1, 1, 0],
+        "warming":      [2, 1, 1, 0]
+      },
+  
+      {
+        "name": "Учитель",
+        "levels":       [0, 1, 1, 3, 2, 1, 0, 0],
+        "coding_small": [3, 2, 1, 1, 0, 1],
+        "coding_medium":[2, 2, 1, 0, 1, 0],
+        "coding_large": [1, 1, 1, 1, 1, 0],
+        "warming":      [1, 2, 1, 0]
+      },
+  
+      {
+        "name": "Программист",
+        "levels":       [0, 1, 2, 2, 2, 1, 0, 0],
+        "coding_small": [0, 1, 2, 0, 0, 3],
+        "coding_medium":[1, 1, 3, 0, 1, 0],
+        "coding_large": [0, 0, 4, 0, 1, 1],
+        "warming":      [1, 1, 2, 0]
+      },
+  
+      {
+        "name": "Психолог",
+        "levels":       [0, 2, 1, 1, 2, 1, 1, 0],
+        "coding_small": [2, 1, 0, 3, 0, 0],
+        "coding_medium":[2, 2, 0, 2, 0, 0],
+        "coding_large": [3, 1, 0, 1, 1, 0],
+        "warming":      [1, 2, 3, 2]
+      }
+      ,
+  
+      {
+        "name": "менджер",
+        "levels":       [0, 1, 2, 3, 2, 1, 1, 0],
+        "coding_small": [2, 1, 1, 3, 0, 0],
+        "coding_medium":[2, 1, 3, 1, 3, 1],
+        "coding_large": [1, 2, 4, 1],
+        "warming":      [1, 2, 3, 1]
+      }
+    ]
+  }
+  

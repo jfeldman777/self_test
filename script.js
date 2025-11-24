@@ -3,6 +3,22 @@
 let testData = {};
 let profData = {};
 
+const PROF_TEST_MAPPING = [
+  { field: 'levels', testName: 'Уровни' },
+  { field: 'warming', testName: 'Разогрев' },
+  { field: 'coding_small', testName: 'Кодировки мелкие' },
+  { field: 'coding_medium', testName: 'Кодировки средние' },
+  { field: 'coding_large', testName: 'Кодировки крупные' }
+];
+
+const PROF_STORAGE_KEY = 'professionsDraft';
+
+let profEditorState = {
+  list: [],
+  currentIndex: null,
+  initialized: false
+};
+
 //-----------------------------------------
 // ЗАГРУЗКА ВСЕХ ДАННЫХ
 //-----------------------------------------
@@ -17,6 +33,7 @@ Promise.all([
     loadTest();
     loadResult();
     loadHistory();
+    loadProfEditor();
 });
 
 
@@ -503,6 +520,40 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
   }
 }
 
+function getProfMappingWithIndexes(){
+  return PROF_TEST_MAPPING.map(item => {
+    const testIndex = testData.tests ? testData.tests.findIndex(t => t.name === item.testName) : -1;
+    return { ...item, testIndex: testIndex >= 0 ? testIndex : null };
+  });
+}
+
+function getTestMeaningLabels(testName){
+  if (!testData.tests) return [];
+  const test = testData.tests.find(t => t.name === testName);
+  if (!test || !test.answersMeaning) return [];
+  const keys = Object.keys(test.answersMeaning).sort((a, b) => Number(a) - Number(b));
+  return keys.map(k => test.answersMeaning[k]);
+}
+
+function cloneProfession(prof){
+  const clone = { ...prof };
+  PROF_TEST_MAPPING.forEach(mapping => {
+    const source = Array.isArray(prof[mapping.field]) ? prof[mapping.field] : [];
+    clone[mapping.field] = source.map(v => Number(v) || 0);
+  });
+  clone.name = clone.name || '';
+  return clone;
+}
+
+function createEmptyProfession(name){
+  const prof = { name: name || `Новая профессия ${profEditorState.list.length + 1}` };
+  PROF_TEST_MAPPING.forEach(mapping => {
+    const labels = getTestMeaningLabels(mapping.testName);
+    prof[mapping.field] = Array(labels.length).fill(0);
+  });
+  return prof;
+}
+
 
 
 
@@ -517,12 +568,12 @@ function compareProfession(){
   const div = document.getElementById("prof-results");
   div.innerHTML = "<h3>Диаграммы профессии</h3>";
 
+  const p = profData.professions[profIndex];
+
   // Создаем контейнер для горизонтального расположения диаграмм
   const chartsContainer = document.createElement('div');
   chartsContainer.className = 'charts-grid';
   div.appendChild(chartsContainer);
-
-  const p = profData.professions[profIndex];
 
   // Получаем последние результаты пользователя для каждого теста
   const history = JSON.parse(localStorage.getItem("history") || "[]");
@@ -539,21 +590,7 @@ function compareProfession(){
     }
   });
 
-  // Маппинг полей профессий к testIndex и названиям тестов
-  // Порядок соответствует порядку в data.json
-  const testMapping = [
-    { field: 'levels', testIndex: null, name: 'Уровни' },
-    { field: 'warming', testIndex: null, name: 'Разогрев' },
-    { field: 'coding_small', testIndex: null, name: 'Кодировки мелкие' },
-    { field: 'coding_medium', testIndex: null, name: 'Кодировки средние' },
-    { field: 'coding_large', testIndex: null, name: 'Кодировки крупные' }
-  ];
-
-  // Находим testIndex для каждого теста по имени
-  testMapping.forEach(m => {
-    const idx = testData.tests ? testData.tests.findIndex(t => t.name === m.name) : -1;
-    m.testIndex = idx >= 0 ? idx : null;
-  });
+  const testMapping = getProfMappingWithIndexes();
 
   // Рисуем диаграммы для каждого теста профессии
   testMapping.forEach((mapping, ti) => {
@@ -592,7 +629,7 @@ function compareProfession(){
     // Создаем заголовок
     const h4 = document.createElement('h4');
     h4.className = 'chart-title';
-    h4.textContent = mapping.name;
+    h4.textContent = mapping.testName;
     chartCard.appendChild(h4);
     
     // Создаем легенду, если есть данные пользователя
@@ -623,4 +660,212 @@ function compareProfession(){
       drawRadar(canvasId, valuesObj, labels.length > 0 ? labels : mapping.testIndex, userValuesObj);
     }, 0);
   });
+}
+
+
+//-----------------------------------------
+// Режим корректировки профессий
+//-----------------------------------------
+function loadProfEditor(){
+  const editor = document.getElementById('prof-editor');
+  if (!editor) return;
+
+  if (!profEditorState.initialized) {
+    const stored = localStorage.getItem(PROF_STORAGE_KEY);
+    let existing = [];
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          existing = parsed.map(cloneProfession);
+        } else if (parsed.professions && Array.isArray(parsed.professions)) {
+          existing = parsed.professions.map(cloneProfession);
+        }
+      } catch (err) {
+        console.warn('professionsDraft parse error', err);
+      }
+    }
+    if (!existing.length) {
+      existing = (profData.professions || []).map(cloneProfession);
+    }
+    profEditorState.list = existing;
+    profEditorState.currentIndex = existing.length ? 0 : null;
+    profEditorState.initialized = true;
+  }
+
+  const addBtn = document.getElementById('add-prof-btn');
+  if (addBtn) addBtn.onclick = addProfession;
+
+  const saveBtn = document.getElementById('save-prof-btn');
+  if (saveBtn) saveBtn.onclick = saveProfessions;
+
+  const exportBtn = document.getElementById('export-prof-btn');
+  if (exportBtn) exportBtn.onclick = exportProfessions;
+
+  renderProfessionsList();
+  renderProfForm();
+}
+
+function renderProfessionsList(){
+  const listContainer = document.getElementById('prof-list');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '';
+
+  if (profEditorState.list.length === 0){
+    listContainer.innerHTML = '<p>Нет профессий. Добавьте новую.</p>';
+    return;
+  }
+
+  profEditorState.list.forEach((prof, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'prof-select-btn' + (idx === profEditorState.currentIndex ? ' active' : '');
+    btn.textContent = prof.name || `Профессия ${idx + 1}`;
+    btn.addEventListener('click', () => {
+      profEditorState.currentIndex = idx;
+      renderProfessionsList();
+      renderProfForm();
+    });
+    listContainer.appendChild(btn);
+  });
+}
+
+function renderProfForm(){
+  const formContainer = document.getElementById('prof-form');
+  if (!formContainer) return;
+
+  formContainer.innerHTML = '';
+
+  if (profEditorState.currentIndex === null || !profEditorState.list[profEditorState.currentIndex]){
+    formContainer.innerHTML = '<p>Выберите профессию слева или добавьте новую.</p>';
+    return;
+  }
+
+  const prof = profEditorState.list[profEditorState.currentIndex];
+
+  const nameLabel = document.createElement('label');
+  nameLabel.className = 'prof-name-label';
+  nameLabel.textContent = 'Название профессии';
+  formContainer.appendChild(nameLabel);
+
+  const nameInput = document.createElement('input');
+  nameInput.className = 'prof-name-input';
+  nameInput.value = prof.name || '';
+  nameInput.placeholder = 'Введите название';
+  nameInput.addEventListener('input', e => {
+    prof.name = e.target.value;
+    renderProfessionsList();
+  });
+  formContainer.appendChild(nameInput);
+
+  const testsWrap = document.createElement('div');
+  testsWrap.className = 'prof-tests';
+  formContainer.appendChild(testsWrap);
+
+  const mapping = getProfMappingWithIndexes();
+
+  mapping.forEach(map => {
+    const section = document.createElement('div');
+    section.className = 'prof-test-card';
+    const title = document.createElement('h3');
+    title.textContent = map.testName;
+    section.appendChild(title);
+
+    const labels = getTestMeaningLabels(map.testName);
+    if (labels.length === 0){
+      const empty = document.createElement('p');
+      empty.textContent = 'Нет данных для этого теста.';
+      section.appendChild(empty);
+      testsWrap.appendChild(section);
+      return;
+    }
+
+    if (!Array.isArray(prof[map.field])) {
+      prof[map.field] = Array(labels.length).fill(0);
+    }
+
+    if (prof[map.field].length < labels.length){
+      for (let i = prof[map.field].length; i < labels.length; i++){
+        prof[map.field][i] = 0;
+      }
+    }
+
+    labels.forEach((labelText, idx) => {
+      const row = document.createElement('div');
+      row.className = 'prof-slider-row';
+
+      const labelEl = document.createElement('label');
+      labelEl.textContent = labelText;
+      labelEl.htmlFor = `prof-${map.field}-${idx}`;
+      row.appendChild(labelEl);
+
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = '0';
+      slider.max = '10';
+      slider.step = '1';
+      slider.value = Number(prof[map.field][idx]) || 0;
+      slider.id = `prof-${map.field}-${idx}`;
+      slider.className = 'prof-slider';
+
+      const valueSpan = document.createElement('span');
+      valueSpan.className = 'prof-value';
+      valueSpan.textContent = slider.value;
+
+      slider.addEventListener('input', e => {
+        const val = Number(e.target.value);
+        prof[map.field][idx] = val;
+        valueSpan.textContent = val;
+      });
+
+      row.appendChild(slider);
+      row.appendChild(valueSpan);
+
+      section.appendChild(row);
+    });
+
+    testsWrap.appendChild(section);
+  });
+}
+
+function addProfession(){
+  if (!testData.tests) return;
+  const newProf = createEmptyProfession();
+  profEditorState.list.push(newProf);
+  profEditorState.currentIndex = profEditorState.list.length - 1;
+  renderProfessionsList();
+  renderProfForm();
+}
+
+function exportProfessions(){
+  if (!profEditorState.list.length) return;
+  const payload = {
+    professions: profEditorState.list
+  };
+  const dataStr = JSON.stringify(payload, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'professions-export.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function saveProfessions(){
+  if (!profEditorState.list.length) return;
+  const clone = profEditorState.list.map(cloneProfession);
+  profData.professions = clone;
+  localStorage.setItem(PROF_STORAGE_KEY, JSON.stringify(clone));
+  const saveBtn = document.getElementById('save-prof-btn');
+  if (saveBtn){
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Сохранено';
+    setTimeout(()=>{
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Сохранить изменения';
+    }, 1500);
+  }
 }
