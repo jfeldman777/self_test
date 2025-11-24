@@ -8,21 +8,23 @@
   <script src="script.js" defer></script>
 </head>
 <body>
-
-<h1>Режим корректировки профессий</h1>
-<p>Выберите профессию для корректировки, настройте значения по каждому тесту и экспортируйте обновленный файл.</p>
-
-<div id="prof-editor">
-  <div class="prof-toolbar">
-    <button class="btn" id="add-prof-btn">Добавить профессию</button>
-    <button class="btn" id="save-prof-btn">Сохранить изменения</button>
+<header class="top-nav">
+  <div class="top-nav__brand">Корректировка профессий</div>
+  <div class="top-nav__actions">
+    <a class="btn" href="index.html">Домой</a>
+    <button class="btn" id="add-prof-btn">Добавить</button>
+    <button class="btn" id="save-prof-btn">Сохранить</button>
     <button class="btn" id="export-prof-btn">Экспорт</button>
   </div>
-  <div id="prof-list"></div>
-  <div id="prof-form"></div>
-</div>
+</header>
 
-<a class="btn" href="index.html">Назад</a>
+<main>
+  <p>Выберите профессию, отредактируйте значения по тестам или добавьте новую. Сохраните изменения и при выходе из режима экспортируйте файл.</p>
+  <div id="prof-editor" class="prof-editor-layout">
+    <div id="prof-list" class="prof-list-panel"></div>
+    <div id="prof-form" class="prof-form-panel"></div>
+  </div>
+</main>
 
 </body>
 </html>

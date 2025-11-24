@@ -46,14 +46,38 @@ function loadIndex(){
 
   list.innerHTML = "";
 
+  let takenTests = new Set();
+  try {
+    const history = JSON.parse(localStorage.getItem("history") || "[]");
+    history.forEach(entry => {
+      if (entry && entry.testIndex !== undefined && entry.testIndex !== null){
+        takenTests.add(Number(entry.testIndex));
+      }
+    });
+  } catch (err){
+    console.warn("history parse error", err);
+  }
+
   testData.tests.forEach((t,i)=>{
-    list.innerHTML += `
-      <div class="testItem">
-        <a class="test-link" href="test.html?test=${i}">
-          <b>${t.name}</b>
-        </a>
-      </div>
-    `;
+    const alreadyTaken = takenTests.has(i);
+    if (alreadyTaken){
+      list.innerHTML += `
+        <div class="testItem testItem--taken">
+          <span class="test-link disabled">
+            <b>${t.name}</b>
+          </span>
+          <small class="test-note">Тест уже пройден. Очистите историю, чтобы пройти заново.</small>
+        </div>
+      `;
+    } else {
+      list.innerHTML += `
+        <div class="testItem">
+          <a class="test-link" href="test.html?test=${i}">
+            <b>${t.name}</b>
+          </a>
+        </div>
+      `;
+    }
   });
 }
 
@@ -193,7 +217,7 @@ function loadResult(){
   }
 
   // кнопка вернуться
-  div.innerHTML += `<a class="btn" href="index.html">Назад</a>`;
+  div.innerHTML += `<a class="btn" href="index.html">Домой</a>`;
 
   // отрисовка диаграммы
   const chartDiv = document.getElementById('chart');
@@ -523,7 +547,7 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
 function getProfMappingWithIndexes(){
   return PROF_TEST_MAPPING.map(item => {
     const testIndex = testData.tests ? testData.tests.findIndex(t => t.name === item.testName) : -1;
-    return { ...item, testIndex: testIndex >= 0 ? testIndex : null };
+    return Object.assign({}, item, { testIndex: testIndex >= 0 ? testIndex : null });
   });
 }
 
@@ -536,7 +560,7 @@ function getTestMeaningLabels(testName){
 }
 
 function cloneProfession(prof){
-  const clone = { ...prof };
+  const clone = Object.assign({}, prof);
   PROF_TEST_MAPPING.forEach(mapping => {
     const source = Array.isArray(prof[mapping.field]) ? prof[mapping.field] : [];
     clone[mapping.field] = source.map(v => Number(v) || 0);
@@ -697,7 +721,9 @@ function loadProfEditor(){
   if (addBtn) addBtn.onclick = addProfession;
 
   const saveBtn = document.getElementById('save-prof-btn');
-  if (saveBtn) saveBtn.onclick = saveProfessions;
+  if (saveBtn){
+    saveBtn.onclick = saveProfessions;
+  }
 
   const exportBtn = document.getElementById('export-prof-btn');
   if (exportBtn) exportBtn.onclick = exportProfessions;
@@ -755,6 +781,7 @@ function renderProfForm(){
   nameInput.addEventListener('input', e => {
     prof.name = e.target.value;
     renderProfessionsList();
+    markProfChanges();
   });
   formContainer.appendChild(nameInput);
 
@@ -816,6 +843,7 @@ function renderProfForm(){
         const val = Number(e.target.value);
         prof[map.field][idx] = val;
         valueSpan.textContent = val;
+        markProfChanges();
       });
 
       row.appendChild(slider);
@@ -826,6 +854,18 @@ function renderProfForm(){
 
     testsWrap.appendChild(section);
   });
+
+  markProfChanges();
+  const stored = localStorage.getItem(PROF_STORAGE_KEY);
+  if (stored){
+    try {
+      const parsed = JSON.parse(stored);
+      const current = profEditorState.list.map(cloneProfession);
+      if (JSON.stringify(parsed) === JSON.stringify(current)){
+        markProfChanges(true);
+      }
+    } catch(e){}
+  }
 }
 
 function addProfession(){
@@ -868,4 +908,23 @@ function saveProfessions(){
       saveBtn.textContent = 'Сохранить изменения';
     }, 1500);
   }
+  markProfChanges(true);
+}
+
+function clearHistory(){
+  localStorage.removeItem("history");
+  localStorage.removeItem("lastResult");
+  location.reload();
+}
+
+function markProfChanges(saved){
+  const saveBtn = document.getElementById('save-prof-btn');
+  if (!saveBtn) return;
+
+  if (saved){
+    saveBtn.disabled = true;
+    return;
+  }
+
+  saveBtn.disabled = false;
 }
