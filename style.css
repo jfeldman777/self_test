@@ -181,23 +181,19 @@ body {
 }
 
 .prof-editor-layout {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: block;
     margin-top: 20px;
 }
 
 .prof-list-panel {
-    flex: 1 1 250px;
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 15px;
     background: #fff;
-    min-width: 250px;
+    margin-bottom: 20px;
 }
 
 .prof-form-panel {
-    flex: 2 1 500px;
     border: 1px solid #ddd;
     border-radius: 10px;
     padding: 20px;

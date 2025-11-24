@@ -923,8 +923,10 @@ function markProfChanges(saved){
 
   if (saved){
     saveBtn.disabled = true;
+    saveBtn.textContent = 'Сохранено';
     return;
   }
 
   saveBtn.disabled = false;
+  saveBtn.textContent = 'Сохранить';
 }
