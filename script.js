@@ -168,8 +168,11 @@ function loadResult(){
   div.innerHTML = `<h3>${test.name}</h3>`;
 
   // вывод результатов
-  for (let k in r){
-    div.innerHTML += `<p>${meanings[k]}: <b>${r[k]}%</b></p>`;
+    for (let k in r){
+    // Проверяем, что значение существует и не null/undefined
+    if (meanings[k] && r[k] !== null && r[k] !== undefined) {
+      div.innerHTML += `<p>${meanings[k]}: <b>${r[k]}%</b></p>`;
+    }
   }
 
   // кнопка вернуться
@@ -452,6 +455,9 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
 
   // Рисуем значения (цифры) на точках первой диаграммы
   values.forEach((v,i)=>{
+    // Пропускаем null/undefined значения
+    if (v === null || v === undefined || isNaN(v)) return;
+    
     const ang = i * angleStep - Math.PI/2;
     const R = maxR * (v/100);
     const x = cx + R * Math.cos(ang);
@@ -475,6 +481,9 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
     const compareValues = compareKeys.map(k => compareValuesObj[k] || 0);
     
     compareValues.forEach((v,i)=>{
+      // Пропускаем null/undefined значения
+      if (v === null || v === undefined || isNaN(v)) return;
+      
       const ang = i * angleStep - Math.PI/2;
       const R = maxR * (v/100);
       const x = cx + R * Math.cos(ang);

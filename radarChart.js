@@ -65,6 +65,9 @@ function drawRadarChart(containerId, labels, values) {
 
     // Рисуем значения (цифры) на точках
     values.forEach((v, i) => {
+        // Пропускаем null/undefined значения
+        if (v === null || v === undefined || isNaN(v)) return;
+        
         const angle = i * angleStep - Math.PI / 2;
         const r = (v / 100) * R;
         const x = cx + Math.cos(angle) * r;
