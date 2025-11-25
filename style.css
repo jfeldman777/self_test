@@ -95,6 +95,52 @@ body {
     display: block;
     margin-bottom: 8px;
   }
+
+  .levels2-pair {
+    margin-bottom: 30px;
+  }
+
+  .levels2-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .levels2-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+  }
+
+  .levels2-option:hover {
+    border-color: #4a6cff;
+    background: #f0f4ff;
+  }
+
+  .levels2-option input[type="radio"],
+  .levels2-option input[type="checkbox"] {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  .levels2-option input[type="radio"]:checked + span,
+  .levels2-option input[type="checkbox"]:checked + span {
+    font-weight: bold;
+    color: #4a6cff;
+  }
+
+  .levels2-option.checked {
+    border-color: #4a6cff;
+    background: #e8f0ff;
+  }
   
   .testLink {
     font-size: 20px;

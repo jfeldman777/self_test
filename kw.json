@@ -1,0 +1,86 @@
+{
+  "name": "уровни-2",
+  "keywords": {
+    "1": [
+      { "ru": "чудо", "en": "miracle" },
+      { "ru": "тайна", "en": "mystery" },
+      { "ru": "мистика", "en": "mysticism" },
+      { "ru": "магия", "en": "magic" },
+      { "ru": "имя", "en": "name" },
+      { "ru": "вещь", "en": "object" },
+      { "ru": "символ", "en": "symbol" },
+      { "ru": "знак", "en": "sign" },
+      { "ru": "узнавание", "en": "recognition" },
+      { "ru": "наименование", "en": "naming" },
+      { "ru": "фиксация", "en": "fixation" },
+      { "ru": "концентрация", "en": "concentration" },
+      { "ru": "изоляция", "en": "isolation" }
+    ],
+    "2": [
+      { "ru": "семья", "en": "family" },
+      { "ru": "свои", "en": "one's own" },
+      { "ru": "чужие", "en": "outsiders" },
+      { "ru": "граница", "en": "boundary" },
+      { "ru": "различение", "en": "distinction" },
+      { "ru": "разграничение", "en": "demarcation" },
+      { "ru": "пространство", "en": "space" }
+    ],
+    "3": [
+      { "ru": "борьба", "en": "struggle" },
+      { "ru": "доминирование", "en": "dominance" },
+      { "ru": "подчинение", "en": "submission" },
+      { "ru": "время", "en": "time" },
+      { "ru": "движение", "en": "movement" },
+      { "ru": "предельный переход", "en": "ultimate transition" },
+      { "ru": "упорядочение", "en": "ordering" },
+      { "ru": "храбрость", "en": "bravery" }
+    ],
+    "4": [
+      { "ru": "правила", "en": "rules" },
+      { "ru": "координация", "en": "coordination" },
+      { "ru": "взаимозависимость", "en": "interdependence" },
+      { "ru": "роль", "en": "role" },
+      { "ru": "способ", "en": "method" },
+      { "ru": "ряды", "en": "rows" },
+      { "ru": "параллельные", "en": "parallels" },
+      { "ru": "долг", "en": "duty" }
+    ],
+    "5": [
+      { "ru": "импровизация", "en": "improvisation" },
+      { "ru": "свобода", "en": "freedom" },
+      { "ru": "непредсказуемость", "en": "unpredictability" },
+      { "ru": "случайность", "en": "randomness" },
+      { "ru": "риск", "en": "risk" },
+      { "ru": "выбор", "en": "choice" },
+      { "ru": "самостоятельность", "en": "independence" }
+    ],
+    "6": [
+      { "ru": "диалог", "en": "dialogue" },
+      { "ru": "обоснование", "en": "justification" },
+      { "ru": "опровержение", "en": "refutation" },
+      { "ru": "причина", "en": "cause" },
+      { "ru": "логическое следствие", "en": "logical consequence" },
+      { "ru": "доказательство", "en": "proof" },
+      { "ru": "сомнение", "en": "doubt" },
+      { "ru": "логичность", "en": "logic" },
+      { "ru": "ясность", "en": "clarity" }
+    ],
+    "7": [
+      { "ru": "оригинальность подхода", "en": "originality of approach" },
+      { "ru": "новаторство", "en": "innovation" },
+      { "ru": "разрушение традиции", "en": "breaking tradition" },
+      { "ru": "гений", "en": "genius" },
+      { "ru": "открытие", "en": "discovery" },
+      { "ru": "аномалия", "en": "anomaly" },
+      { "ru": "парадокс", "en": "paradox" }
+    ],
+    "8": [
+      { "ru": "моделирование чужого сознания", "en": "modeling another's consciousness" },
+      { "ru": "мультиверсум", "en": "multiverse" },
+      { "ru": "абсолютная эмпатия", "en": "absolute empathy" },
+      { "ru": "другая вселенная", "en": "another universe" },
+      { "ru": "гармония", "en": "harmony" },
+      { "ru": "баланс", "en": "balance" }
+    ]
+  }
+}

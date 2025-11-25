@@ -114,7 +114,8 @@
       "test_4_q_2_a_2": "technology and engineering",
       "test_4_q_2_a_3": "mysticism",
       "test_4_q_2_a_4": "free search",
-      "test_4_q_2_a_5": "poetry"
+      "test_4_q_2_a_5": "poetry",
+      "test_5_name": "Levels-2"
     },
     "ru": {}
   },
@@ -161,6 +162,11 @@
       "prof_description": "Select a profession, edit test values or add a new one. Save changes and export the file when exiting the mode.",
       "select_lang": "Select language",
       "your_charts": "Your Charts",
+      "levels2_pair_title": "What would you choose",
+      "levels2_option_both": "Both",
+      "levels2_option_none": "Neither",
+      "levels2_not_enough_keywords": "Not enough keywords for the test",
+      "levels2_need_two_levels": "Keywords must cover at least two levels",
       "no_result": "No result.",
       "loading_tests": "Loading tests...",
       "profession": "Profession",

@@ -3,9 +3,11 @@
 let testData = {};
 let profData = {};
 let originalTestData = {}; // Сохраняем оригинальные данные для восстановления
+let keywordsData = {}; // Данные ключевых слов для теста "Уровни-2"
 
 const PROF_TEST_MAPPING = [
   { field: 'levels', testName: 'Уровни' },
+  { field: 'levels', testName: 'Уровни-2' },
   { field: 'warming', testName: 'Разогрев' },
   { field: 'coding_small', testName: 'Кодировки мелкие' },
   { field: 'coding_medium', testName: 'Кодировки средние' },
@@ -35,9 +37,10 @@ let dictEditorState = {
 Promise.all([
   fetch("data.json").then(r => r.json()),
   fetch("prof.json").then(r => r.json()).catch(() => ({professions:[]})),
-  fetch("dict.json").then(r => r.json()).catch(() => ({}))
+  fetch("dict.json").then(r => r.json()).catch(() => ({})),
+  fetch("kw.json").then(r => r.json()).catch(() => ({}))
 ])
-.then(([tests, profs, dict]) => {
+.then(([tests, profs, dict, keywords]) => {
     // Сохраняем оригинальные данные (глубокая копия)
     if (tests && tests.tests) {
       originalTestData = {
@@ -50,6 +53,7 @@ Promise.all([
     testData = tests;
     profData = profs;
     dictData = dict || {};
+    keywordsData = keywords || {};
     
     // Проверяем, что данные загружены
     if (!testData || !testData.tests || testData.tests.length === 0) {
@@ -170,6 +174,8 @@ function loadTest(){
   const idx = Number(params.get("test") || 0);
   const test = testData.tests[idx];
 
+  if (!test) return;
+
   // Обновляем название теста
   const titleElement = document.getElementById('test-title');
   if (titleElement && test) {
@@ -178,6 +184,13 @@ function loadTest(){
 
   container.innerHTML = "";
 
+  // Проверяем тип теста
+  if (test.type === 'levels2') {
+    loadLevels2Test(test, idx);
+    return;
+  }
+
+  // Обычный тест со слайдерами
   test.questions.forEach((q, qi) => {
     const block = document.createElement('div');
     block.className = "question";
@@ -215,6 +228,259 @@ function loadTest(){
   });
 }
 
+//-----------------------------------------
+// ТЕСТ УРОВНИ-2: загрузка пар ключевых слов
+//-----------------------------------------
+function loadLevels2Test(test, testIndex){
+  const container = document.getElementById('test-container');
+  if (!container || !keywordsData.keywords) return;
+
+  container.innerHTML = "";
+
+  // Собираем все ключевые слова с их уровнями
+  const allKeywords = [];
+  Object.keys(keywordsData.keywords).forEach(level => {
+    const keywords = keywordsData.keywords[level];
+    if (Array.isArray(keywords)) {
+      keywords.forEach(keyword => {
+        const normalizedKeyword = normalizeLevels2Keyword(keyword);
+        allKeywords.push({
+          keyword: normalizedKeyword,
+          level: level
+        });
+      });
+    }
+  });
+
+  if (allKeywords.length < 2) {
+    container.innerHTML = '<p>' + getUITranslation('levels2_not_enough_keywords', 'Недостаточно ключевых слов для теста') + '</p>';
+    return;
+  }
+
+  const uniqueLevels = Array.from(new Set(allKeywords.map(item => item.level)));
+  if (uniqueLevels.length < 2) {
+    container.innerHTML = '<p>' + getUITranslation('levels2_need_two_levels', 'Нужны ключевые слова минимум двух уровней') + '</p>';
+    return;
+  }
+
+  // Генерируем случайные пары (минимум 20 пар для хорошего теста)
+  const pairs = [];
+  const numPairs = Math.max(20, Math.floor(allKeywords.length / 2));
+  
+  const pairTitle = getUITranslation('levels2_pair_title', 'Что бы ты выбрал');
+  const bothLabel = getUITranslation('levels2_option_both', 'Оба');
+  const noneLabel = getUITranslation('levels2_option_none', 'Ни одно');
+
+  for (let i = 0; i < numPairs; i++) {
+    let idx1 = -1;
+    let idx2 = -1;
+    let attempts = 0;
+    const maxAttempts = 50;
+    let found = false;
+
+    while (attempts < maxAttempts && !found) {
+      idx1 = Math.floor(Math.random() * allKeywords.length);
+      idx2 = Math.floor(Math.random() * allKeywords.length);
+      if (idx1 !== idx2 && allKeywords[idx1].level !== allKeywords[idx2].level) {
+        found = true;
+      }
+      attempts++;
+    }
+
+    if (!found) {
+      break;
+    }
+    
+    pairs.push({
+      keyword1: allKeywords[idx1],
+      keyword2: allKeywords[idx2],
+      pairIndex: i
+    });
+  }
+
+  // Отображаем пары
+  pairs.forEach((pair, pi) => {
+    const block = document.createElement('div');
+    block.className = "question levels2-pair";
+    
+    const pairName = `pair_${pi}`;
+    
+    const keyword1Label = getLevels2KeywordLabel(pair.keyword1.keyword);
+    const keyword2Label = getLevels2KeywordLabel(pair.keyword2.keyword);
+    const keyword1Base = getLevels2KeywordBase(pair.keyword1.keyword);
+    const keyword2Base = getLevels2KeywordBase(pair.keyword2.keyword);
+    
+    block.innerHTML = `
+      <div class="qtext"><b>${pairTitle} ${pi + 1}</b></div>
+      <div class="levels2-options">
+        <label class="levels2-option">
+          <input type="radio" name="${pairName}" class="levels2-radio" 
+                 value="1"
+                 data-pair="${pi}" 
+                 data-keyword="${keyword1Base}" 
+                 data-level="${pair.keyword1.level}">
+          <span>${keyword1Label}</span>
+        </label>
+        <label class="levels2-option">
+          <input type="radio" name="${pairName}" class="levels2-radio" 
+                 value="2"
+                 data-pair="${pi}" 
+                 data-keyword="${keyword2Base}" 
+                 data-level="${pair.keyword2.level}">
+          <span>${keyword2Label}</span>
+        </label>
+        <label class="levels2-option">
+          <input type="radio" name="${pairName}" class="levels2-radio" 
+                 value="both"
+                 data-pair="${pi}">
+          <span>${bothLabel}</span>
+        </label>
+        <label class="levels2-option">
+          <input type="radio" name="${pairName}" class="levels2-radio" 
+                 value="none"
+                 data-pair="${pi}">
+          <span>${noneLabel}</span>
+        </label>
+      </div>
+    `;
+    
+    container.appendChild(block);
+  });
+
+  // Добавляем обработчики для обновления стилей при выборе
+  container.querySelectorAll('.levels2-radio').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const pairBlock = this.closest('.levels2-pair');
+      pairBlock.querySelectorAll('.levels2-option').forEach(opt => {
+        opt.classList.remove('checked');
+      });
+      if (this.checked) {
+        this.closest('.levels2-option').classList.add('checked');
+      }
+    });
+  });
+}
+ 
+function normalizeLevels2Keyword(keywordEntry) {
+  if (!keywordEntry) return { ru: '' };
+  if (typeof keywordEntry === 'string') {
+    return { ru: keywordEntry };
+  }
+  const normalized = Object.assign({}, keywordEntry);
+  if (!normalized.ru && normalized.en) {
+    normalized.ru = normalized.en;
+  }
+  return normalized;
+}
+
+function getLevels2KeywordLabel(keywordEntry) {
+  if (!keywordEntry) return '';
+  if (typeof keywordEntry === 'string') return keywordEntry;
+  const langKey = currentLang || 'ru';
+  return keywordEntry[langKey] || keywordEntry.ru || '';
+}
+
+function getLevels2KeywordBase(keywordEntry) {
+  if (!keywordEntry) return '';
+  if (typeof keywordEntry === 'string') return keywordEntry;
+  return keywordEntry.ru || keywordEntry.en || '';
+}
+
+//-----------------------------------------
+// ТЕСТ УРОВНИ-2: расчет результатов
+//-----------------------------------------
+function finishLevels2Test(test, testIndex){
+  // Инициализируем счетчики и карту соответствия уровней
+  let score = {};
+  const levelKeyMap = {};
+  Object.keys(test.answersMeaning).forEach(k => {
+    score[k] = 0;
+    const levelLabel = String(test.answersMeaning[k]);
+    levelKeyMap[levelLabel] = k;
+  });
+
+  // Собираем все пары
+  const pairs = [];
+  const pairBlocks = document.querySelectorAll('.levels2-pair');
+  
+  pairBlocks.forEach(block => {
+    const radios = block.querySelectorAll('.levels2-radio');
+    if (radios.length >= 4) {
+      const selected = block.querySelector('.levels2-radio:checked');
+      if (selected) {
+        const value = selected.value;
+        const level1 = levelKeyMap[radios[0].dataset.level] || radios[0].dataset.level;
+        const level2 = levelKeyMap[radios[1].dataset.level] || radios[1].dataset.level;
+        
+        pairs.push({
+          level1: level1,
+          level2: level2,
+          choice: value // "1", "2", "both", "none"
+        });
+      }
+    }
+  });
+
+  // Подсчитываем баллы по правилам:
+  // - выбрано первое (value="1"): первое +1, второе -1
+  // - выбрано второе (value="2"): второе +1, первое -1
+  // - выбраны оба (value="both"): оба +1
+  // - не выбрано ни одно (value="none"): оба 0
+  pairs.forEach(pair => {
+    if (pair.choice === 'both') {
+      // Оба выбраны - оба +1
+      score[pair.level1] = (score[pair.level1] || 0) + 1;
+      score[pair.level2] = (score[pair.level2] || 0) + 1;
+    } else if (pair.choice === '1') {
+      // Выбрано первое - первое +1, второе -1
+      score[pair.level1] = (score[pair.level1] || 0) + 1;
+      score[pair.level2] = (score[pair.level2] || 0) - 1;
+    } else if (pair.choice === '2') {
+      // Выбрано второе - второе +1, первое -1
+      score[pair.level1] = (score[pair.level1] || 0) - 1;
+      score[pair.level2] = (score[pair.level2] || 0) + 1;
+    } else {
+      // Не выбрано ни одно (value="none") - оба 0 (ничего не делаем)
+    }
+  });
+
+  // Обнуляем все отрицательные и нулевые значения
+  Object.keys(score).forEach(k => {
+    if (!score[k] || score[k] <= 0) {
+      score[k] = 0;
+    }
+  });
+
+  // Нормируем на 100%
+  let total = 0;
+  Object.keys(score).forEach(k => {
+    total += score[k] || 0;
+  });
+
+  let result = {};
+  Object.keys(score).forEach(k => {
+    result[k] = total === 0 ? 0 : Math.round((score[k] || 0) * 100 / total);
+  });
+
+  // Сохраняем результат
+  localStorage.setItem("lastResult", JSON.stringify({
+    testIndex: testIndex,
+    result
+  }));
+
+  // Сохраняем историю
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+  history.push({
+    test: test.name,
+    testIndex: testIndex,
+    time: new Date().toLocaleString(),
+    result
+  });
+  localStorage.setItem("history", JSON.stringify(history));
+
+  window.location = "result.html";
+}
+
 
 //-----------------------------------------
 // Финиш теста
@@ -224,6 +490,15 @@ function finishTest(){
   const idx = Number(params.get("test") || 0);
   const test = testData.tests[idx];
 
+  if (!test) return;
+
+  // Проверяем тип теста
+  if (test.type === 'levels2') {
+    finishLevels2Test(test, idx);
+    return;
+  }
+
+  // Обычный тест со слайдерами
   let score = {};
   Object.keys(test.answersMeaning).forEach(k => score[k] = 0);
 
@@ -731,6 +1006,23 @@ function compareProfession(){
     let userValuesObj = null;
     if (mapping.testIndex !== null && lastUserResults[mapping.testIndex]) {
       userValuesObj = lastUserResults[mapping.testIndex];
+      
+      // Для теста "Уровни-2" нужно преобразовать ключи результата
+      // в правильные индексы для сопоставления с массивом профессии
+      if (mapping.testName === 'Уровни-2' && testData.tests && testData.tests[mapping.testIndex]) {
+        const test = testData.tests[mapping.testIndex];
+        const transformedUserValues = {};
+        // Ключи в userValuesObj уже соответствуют индексам answersMeaning (0-7),
+        // которые соответствуют индексам массива профессии (0-7)
+        // Так что просто копируем значения
+        Object.keys(userValuesObj).forEach(key => {
+          const numKey = Number(key);
+          if (!isNaN(numKey) && numKey >= 0 && numKey < valuesArray.length) {
+            transformedUserValues[key] = userValuesObj[key];
+          }
+        });
+        userValuesObj = transformedUserValues;
+      }
     }
 
     // Получаем labels из testData, если testIndex найден
