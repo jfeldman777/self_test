@@ -14,7 +14,12 @@
       { "ru": "наименование", "en": "naming" },
       { "ru": "фиксация", "en": "fixation" },
       { "ru": "концентрация", "en": "concentration" },
-      { "ru": "изоляция", "en": "isolation" }
+      { "ru": "изоляция", "en": "isolation" },
+      { "ru": "один объект", "en": "single object" },
+      { "ru": "точка", "en": "point" }
+     
+   
+  
     ],
     "2": [
       { "ru": "семья", "en": "family" },
@@ -23,6 +28,8 @@
       { "ru": "граница", "en": "boundary" },
       { "ru": "различение", "en": "distinction" },
       { "ru": "разграничение", "en": "demarcation" },
+      { "ru": "много объектов", "en": "many objects" },
+      { "ru": "куча точек", "en": "cluster of points" },
       { "ru": "пространство", "en": "space" }
     ],
     "3": [
@@ -33,6 +40,8 @@
       { "ru": "движение", "en": "movement" },
       { "ru": "предельный переход", "en": "ultimate transition" },
       { "ru": "упорядочение", "en": "ordering" },
+      { "ru": "одна линия", "en": "single line" },
+      { "ru": "один процесс", "en": "single process" },      
       { "ru": "храбрость", "en": "bravery" }
     ],
     "4": [
@@ -43,6 +52,8 @@
       { "ru": "способ", "en": "method" },
       { "ru": "ряды", "en": "rows" },
       { "ru": "параллельные", "en": "parallels" },
+      { "ru": "пучок линий", "en": "bunch of lines" },
+      { "ru": "много процессов", "en": "many processes" }, 
       { "ru": "долг", "en": "duty" }
     ],
     "5": [
@@ -52,6 +63,8 @@
       { "ru": "случайность", "en": "randomness" },
       { "ru": "риск", "en": "risk" },
       { "ru": "выбор", "en": "choice" },
+      { "ru": "карта", "en": "map" },
+      { "ru": "плоскость", "en": "plane" },         
       { "ru": "самостоятельность", "en": "independence" }
     ],
     "6": [
@@ -63,6 +76,8 @@
       { "ru": "доказательство", "en": "proof" },
       { "ru": "сомнение", "en": "doubt" },
       { "ru": "логичность", "en": "logic" },
+      { "ru": "много карт", "en": "many maps" },
+      { "ru": "пачка плоскостей", "en": "bunch of planes" },   
       { "ru": "ясность", "en": "clarity" }
     ],
     "7": [
@@ -72,6 +87,9 @@
       { "ru": "гений", "en": "genius" },
       { "ru": "открытие", "en": "discovery" },
       { "ru": "аномалия", "en": "anomaly" },
+
+      { "ru": "система", "en": "system" },
+      { "ru": "универсум", "en": "universe" },      
       { "ru": "парадокс", "en": "paradox" }
     ],
     "8": [
@@ -80,6 +98,9 @@
       { "ru": "абсолютная эмпатия", "en": "absolute empathy" },
       { "ru": "другая вселенная", "en": "another universe" },
       { "ru": "гармония", "en": "harmony" },
+
+      { "ru": "много систем", "en": "many systems" },
+      { "ru": "мультиверсум", "en": "multiverse" }      
       { "ru": "баланс", "en": "balance" }
     ]
   }
