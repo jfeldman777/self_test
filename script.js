@@ -2,6 +2,7 @@
 
 let testData = {};
 let profData = {};
+let originalTestData = {}; // Сохраняем оригинальные данные для восстановления
 
 const PROF_TEST_MAPPING = [
   { field: 'levels', testName: 'Уровни' },
@@ -19,21 +20,72 @@ let profEditorState = {
   initialized: false
 };
 
+let dictData = {};
+let currentLang = localStorage.getItem('currentLang') || 'ru';
+
+let dictEditorState = {
+  baseLang: 'ru',
+  targetLang: 'en',
+  initialized: false
+};
+
 //-----------------------------------------
 // ЗАГРУЗКА ВСЕХ ДАННЫХ
 //-----------------------------------------
 Promise.all([
   fetch("data.json").then(r => r.json()),
-  fetch("prof.json").then(r => r.json()).catch(() => ({professions:[]}))
+  fetch("prof.json").then(r => r.json()).catch(() => ({professions:[]})),
+  fetch("dict.json").then(r => r.json()).catch(() => ({}))
 ])
-.then(([tests, profs]) => {
+.then(([tests, profs, dict]) => {
+    // Сохраняем оригинальные данные (глубокая копия)
+    if (tests && tests.tests) {
+      originalTestData = {
+        tests: tests.tests.map(test => JSON.parse(JSON.stringify(test)))
+      };
+    } else {
+      originalTestData = { tests: [] };
+    }
+    
     testData = tests;
     profData = profs;
+    dictData = dict || {};
+    
+    // Проверяем, что данные загружены
+    if (!testData || !testData.tests || testData.tests.length === 0) {
+      console.error('testData.tests is empty or undefined');
+      const list = document.getElementById("test-list");
+      if (list) {
+        list.innerHTML = '<p>' + getUITranslation('loading_tests', 'Loading tests...') + '</p>';
+      }
+      return;
+    }
+    
+    // Применяем переводы к данным
+    applyTranslations();
+    
+    // Загружаем интерфейс (после применения переводов)
     loadIndex();
     loadTest();
     loadResult();
     loadHistory();
     loadProfEditor();
+    if (document.getElementById('dict-editor')) {
+      loadDictEditor();
+    }
+    initLanguageSelector();
+    
+    // Применяем переводы UI после загрузки всего контента
+    setTimeout(() => {
+      applyUITranslations();
+    }, 100);
+})
+.catch(err => {
+  console.error('Error loading data:', err);
+  const list = document.getElementById("test-list");
+  if (list) {
+    list.innerHTML = '<p>Error loading tests. Please refresh the page.</p>';
+  }
 });
 
 
@@ -42,9 +94,18 @@ Promise.all([
 //-----------------------------------------
 function loadIndex(){
   const list = document.getElementById("test-list");
-  if (!list) return;
+  if (!list) {
+    console.warn('loadIndex: test-list element not found');
+    return;
+  }
 
   list.innerHTML = "";
+
+  // Проверяем, что testData.tests существует
+  if (!testData || !testData.tests || testData.tests.length === 0) {
+    list.innerHTML = '<p>' + getUITranslation('loading_tests', 'Loading tests...') + '</p>';
+    return;
+  }
 
   let takenTests = new Set();
   try {
@@ -58,27 +119,43 @@ function loadIndex(){
     console.warn("history parse error", err);
   }
 
+  // Дополнительная проверка перед отображением
+  if (!testData.tests || testData.tests.length === 0) {
+    list.innerHTML = '<p>' + getUITranslation('loading_tests', 'Loading tests...') + '</p>';
+    return;
+  }
+  
+  // Собираем HTML в переменную, а не используем innerHTML +=
+  let htmlContent = '';
+  
   testData.tests.forEach((t,i)=>{
+    if (!t) return;
+    
     const alreadyTaken = takenTests.has(i);
+    const testName = t.name || `Test ${i + 1}`;
+    
     if (alreadyTaken){
-      list.innerHTML += `
+      htmlContent += `
         <div class="testItem testItem--taken">
           <span class="test-link disabled">
-            <b>${t.name}</b>
+            <b>${testName}</b>
           </span>
-          <small class="test-note">Тест уже пройден. Очистите историю, чтобы пройти заново.</small>
+          <small class="test-note" data-i18n="test_already_taken">Тест уже пройден. Очистите историю, чтобы пройти заново.</small>
         </div>
       `;
     } else {
-      list.innerHTML += `
+      htmlContent += `
         <div class="testItem">
           <a class="test-link" href="test.html?test=${i}">
-            <b>${t.name}</b>
+            <b>${testName}</b>
           </a>
         </div>
       `;
     }
   });
+  
+  // Устанавливаем весь HTML сразу
+  list.innerHTML = htmlContent;
 }
 
 
@@ -198,7 +275,7 @@ function loadResult(){
 
   const saved = JSON.parse(localStorage.getItem('lastResult'));
   if (!saved){
-    div.innerHTML = "<p>No result.</p>";
+    div.innerHTML = "<p>" + getUITranslation('no_result', 'No result.') + "</p>";
     return;
   }
 
@@ -212,12 +289,13 @@ function loadResult(){
     for (let k in r){
     // Проверяем, что значение существует и не null/undefined
     if (meanings[k] && r[k] !== null && r[k] !== undefined) {
-      div.innerHTML += `<p>${meanings[k]}: <b>${r[k]}%</b></p>`;
+      const translatedLabel = getTranslatedAnswersMeaning(saved.testIndex, k);
+      div.innerHTML += `<p>${translatedLabel}: <b>${r[k]}%</b></p>`;
     }
   }
 
   // кнопка вернуться
-  div.innerHTML += `<a class="btn" href="index.html">Домой</a>`;
+  div.innerHTML += `<a class="btn" href="index.html">${getUITranslation('btn_home', 'Домой')}</a>`;
 
   // отрисовка диаграммы
   const chartDiv = document.getElementById('chart');
@@ -225,7 +303,7 @@ function loadResult(){
     chartDiv.innerHTML = ''; // очищаем перед отрисовкой
     // Получаем ключи в правильном порядке (численно отсортированные)
     const keys = Object.keys(meanings).sort((a, b) => Number(a) - Number(b));
-    const labels = keys.map(k => meanings[k]);
+    const labels = keys.map(k => getTranslatedAnswersMeaning(saved.testIndex, k));
     const values = keys.map(k => r[k] || 0);
     drawRadarChart('chart', labels, values);
   }
@@ -272,7 +350,7 @@ function loadHistory(){
   // Создаем заголовок секции только если есть результаты
   if (Object.keys(lastForTest).length > 0) {
     const h2 = document.createElement('h2');
-    h2.textContent = 'Ваши диаграммы';
+    h2.textContent = getUITranslation('your_charts', 'Ваши диаграммы');
     div.appendChild(h2);
 
     // Создаем контейнер для горизонтального расположения диаграмм
@@ -296,7 +374,9 @@ function loadHistory(){
       // Создаем заголовок
       const h3 = document.createElement('h3');
       h3.className = 'chart-title';
-      h3.textContent = entry.test;
+      // Переводим название теста
+      const testIndex = entry.testIndex;
+      h3.textContent = testIndex !== undefined && testIndex !== null ? getTranslatedTestName(testIndex) : entry.test;
       chartCard.appendChild(h3);
       
       // Создаем canvas
@@ -319,7 +399,7 @@ function loadHistory(){
   // список профессий
   //-----------------------------------------
   const h2Prof = document.createElement('h2');
-  h2Prof.textContent = 'Сравнить с профессией';
+  h2Prof.textContent = getUITranslation('compare_with_prof', 'Сравнить с профессией');
   div.appendChild(h2Prof);
 
   // Создаем контейнер для горизонтального расположения профессий
@@ -344,7 +424,7 @@ function loadHistory(){
   // Создаем кнопку сравнения
   const compareBtn = document.createElement('button');
   compareBtn.className = 'btn';
-  compareBtn.textContent = 'Сравнить';
+  compareBtn.textContent = getUITranslation('btn_compare', 'Сравнить');
   compareBtn.disabled = true;
   compareBtn.onclick = compareProfession;
   div.appendChild(compareBtn);
@@ -387,11 +467,11 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
       // Передан массив labels напрямую
       labels = testIndexOrLabels;
     } else if (typeof testIndexOrLabels === 'number' && testData.tests && testData.tests[testIndexOrLabels]) {
-      // Передан testIndex - получаем labels из testData
+      // Передан testIndex - получаем labels из testData с переводами
       const test = testData.tests[testIndexOrLabels];
       const meanings = test.answersMeaning;
       const keys = Object.keys(meanings).sort((a, b) => Number(a) - Number(b));
-      labels = keys.map(k => meanings[k]);
+      labels = keys.map(k => getTranslatedAnswersMeaning(testIndexOrLabels, k));
     }
   }
 
@@ -550,14 +630,26 @@ function drawRadar(canvasId, valuesObj, testIndexOrLabels, compareValuesObj){
 
 function getProfMappingWithIndexes(){
   return PROF_TEST_MAPPING.map(item => {
-    const testIndex = testData.tests ? testData.tests.findIndex(t => t.name === item.testName) : -1;
+    // Ищем тест по оригинальному названию из константы
+    let testIndex = -1;
+    if (testData.tests) {
+      testIndex = testData.tests.findIndex(t => {
+        // Проверяем оригинальное название
+        const originalName = getOriginalTestName(t);
+        return originalName === item.testName || t.name === item.testName;
+      });
+    }
     return Object.assign({}, item, { testIndex: testIndex >= 0 ? testIndex : null });
   });
 }
 
 function getTestMeaningLabels(testName){
   if (!testData.tests) return [];
-  const test = testData.tests.find(t => t.name === testName);
+  // Ищем тест по оригинальному или переведенному названию
+  const test = testData.tests.find(t => {
+    const originalName = getOriginalTestName(t);
+    return originalName === testName || t.name === testName;
+  });
   if (!test || !test.answersMeaning) return [];
   const keys = Object.keys(test.answersMeaning).sort((a, b) => Number(a) - Number(b));
   return keys.map(k => test.answersMeaning[k]);
@@ -594,7 +686,7 @@ function compareProfession(){
   if (isNaN(profIndex)) return;
 
   const div = document.getElementById("prof-results");
-  div.innerHTML = "<h3>Диаграммы профессии</h3>";
+  div.innerHTML = "<h3>" + getUITranslation('profession_charts', 'Диаграммы профессии') + "</h3>";
 
   const p = profData.professions[profIndex];
 
@@ -647,7 +739,7 @@ function compareProfession(){
       const test = testData.tests[mapping.testIndex];
       const meanings = test.answersMeaning;
       const keys = Object.keys(meanings).sort((a, b) => Number(a) - Number(b));
-      labels = keys.map(k => meanings[k]);
+      labels = keys.map(k => getTranslatedAnswersMeaning(mapping.testIndex, k));
     }
 
     // Создаем карточку для каждой диаграммы
@@ -657,7 +749,14 @@ function compareProfession(){
     // Создаем заголовок
     const h4 = document.createElement('h4');
     h4.className = 'chart-title';
-    h4.textContent = mapping.testName;
+    // Переводим название теста
+    if (mapping.testIndex !== null && mapping.testIndex !== undefined) {
+      h4.textContent = getTranslatedTestName(mapping.testIndex);
+    } else {
+      // Если testIndex не найден, ищем тест по названию
+      const test = testData.tests ? testData.tests.find(t => t.name === mapping.testName || getOriginalTestName(t) === mapping.testName) : null;
+      h4.textContent = test ? test.name : mapping.testName;
+    }
     chartCard.appendChild(h4);
     
     // Создаем легенду, если есть данные пользователя
@@ -667,8 +766,8 @@ function compareProfession(){
       legend.style.fontSize = '12px';
       legend.style.textAlign = 'center';
       legend.innerHTML = `
-        <span style="color: #0066ff;">●</span> Профессия 
-        <span style="color: #ff6600; margin-left: 15px;">●</span> Вы
+        <span style="color: #0066ff;">●</span> ${getUITranslation('profession', 'Профессия')} 
+        <span style="color: #ff6600; margin-left: 15px;">●</span> ${getUITranslation('you', 'Вы')}
       `;
       chartCard.appendChild(legend);
     }
@@ -924,6 +1023,493 @@ function clearHistory(){
   localStorage.removeItem("history");
   localStorage.removeItem("lastResult");
   location.reload();
+}
+
+//-----------------------------------------
+// СЛОВАРИ
+//-----------------------------------------
+function loadDictEditor(){
+  const baseSelect = document.getElementById('base-lang-select');
+  const targetSelect = document.getElementById('target-lang-select');
+  const loadBtn = document.getElementById('load-dict-btn');
+  const exportBtn = document.getElementById('export-dict-btn');
+  
+  if (!baseSelect || !targetSelect) return;
+  
+  // Синхронизируем селекторы - если базовый ru, то целевой en и наоборот
+  baseSelect.addEventListener('change', () => {
+    if (baseSelect.value === 'ru') {
+      targetSelect.value = 'en';
+    } else {
+      targetSelect.value = 'ru';
+    }
+    dictEditorState.baseLang = baseSelect.value;
+    dictEditorState.targetLang = targetSelect.value;
+    renderDictEditor();
+  });
+  
+  targetSelect.addEventListener('change', () => {
+    if (targetSelect.value === 'ru') {
+      baseSelect.value = 'en';
+    } else {
+      baseSelect.value = 'ru';
+    }
+    dictEditorState.baseLang = baseSelect.value;
+    dictEditorState.targetLang = targetSelect.value;
+    renderDictEditor();
+  });
+  
+  if (loadBtn) loadBtn.onclick = () => {
+    dictEditorState.baseLang = baseSelect.value;
+    dictEditorState.targetLang = targetSelect.value;
+    renderDictEditor();
+  };
+  
+  if (exportBtn) exportBtn.onclick = exportDict;
+  
+  // Инициализация
+  dictEditorState.baseLang = baseSelect.value;
+  dictEditorState.targetLang = targetSelect.value;
+  dictEditorState.initialized = true;
+  renderDictEditor();
+}
+
+function renderDictEditor(){
+  const editor = document.getElementById('dict-editor');
+  if (!editor) return;
+  
+  editor.innerHTML = '';
+  
+  const base = dictEditorState.baseLang;
+  const target = dictEditorState.targetLang;
+  
+  // Загружаем базовые данные из testData
+  if (!testData.tests) return;
+  
+  // Секция переводов тестов
+  const testsSection = document.createElement('div');
+  testsSection.className = 'dict-section';
+  const testsTitle = document.createElement('h3');
+  testsTitle.textContent = 'Переводы тестов';
+  testsSection.appendChild(testsTitle);
+  
+  testData.tests.forEach((test, idx) => {
+    const testCard = document.createElement('div');
+    testCard.className = 'dict-item-card';
+    
+    const testNameLabel = document.createElement('label');
+    testNameLabel.textContent = `Название теста (${base}):`;
+    testCard.appendChild(testNameLabel);
+    
+    const testNameBase = document.createElement('div');
+    testNameBase.className = 'dict-base-text';
+    testNameBase.textContent = test.name;
+    testCard.appendChild(testNameBase);
+    
+    const testNameInput = document.createElement('input');
+    testNameInput.className = 'dict-translation-input';
+    testNameInput.type = 'text';
+    testNameInput.placeholder = `Перевод на ${target}`;
+    const testKey = `test_${idx}_name`;
+    if (!dictData.languages) dictData.languages = {};
+    if (!dictData.languages[target]) dictData.languages[target] = {};
+    testNameInput.value = dictData.languages[target][testKey] || '';
+    testNameInput.addEventListener('input', e => {
+      if (!dictData.languages[target]) dictData.languages[target] = {};
+      dictData.languages[target][testKey] = e.target.value;
+    });
+    testCard.appendChild(testNameInput);
+    
+    // Переводы вопросов
+    test.questions.forEach((q, qIdx) => {
+      const qLabel = document.createElement('label');
+      qLabel.textContent = `Вопрос ${qIdx + 1} (${base}):`;
+      testCard.appendChild(qLabel);
+      
+      const qBase = document.createElement('div');
+      qBase.className = 'dict-base-text';
+      qBase.textContent = q.text;
+      testCard.appendChild(qBase);
+      
+      const qInput = document.createElement('input');
+      qInput.className = 'dict-translation-input';
+      qInput.type = 'text';
+      qInput.placeholder = `Перевод на ${target}`;
+      const qKey = `test_${idx}_q_${qIdx}`;
+      qInput.value = dictData.languages[target][qKey] || '';
+      qInput.addEventListener('input', e => {
+        if (!dictData.languages[target]) dictData.languages[target] = {};
+        dictData.languages[target][qKey] = e.target.value;
+      });
+      testCard.appendChild(qInput);
+      
+      // Переводы ответов
+      q.answers.forEach((a, aIdx) => {
+        const aLabel = document.createElement('label');
+        aLabel.textContent = `Ответ ${aIdx + 1} (${base}):`;
+        testCard.appendChild(aLabel);
+        
+        const aBase = document.createElement('div');
+        aBase.className = 'dict-base-text';
+        aBase.textContent = a.text;
+        testCard.appendChild(aBase);
+        
+        const aInput = document.createElement('input');
+        aInput.className = 'dict-translation-input';
+        aInput.type = 'text';
+        aInput.placeholder = `Перевод на ${target}`;
+        const aKey = `test_${idx}_q_${qIdx}_a_${aIdx}`;
+        aInput.value = dictData.languages[target][aKey] || '';
+        aInput.addEventListener('input', e => {
+          if (!dictData.languages[target]) dictData.languages[target] = {};
+          dictData.languages[target][aKey] = e.target.value;
+        });
+        testCard.appendChild(aInput);
+      });
+    });
+    
+    testsSection.appendChild(testCard);
+  });
+  
+  editor.appendChild(testsSection);
+  
+  // Секция переводов профессий
+  const profsSection = document.createElement('div');
+  profsSection.className = 'dict-section';
+  const profsTitle = document.createElement('h3');
+  profsTitle.textContent = 'Переводы профессий';
+  profsSection.appendChild(profsTitle);
+  
+  if (profData.professions && profData.professions.length > 0) {
+    profData.professions.forEach((prof, idx) => {
+      const profCard = document.createElement('div');
+      profCard.className = 'dict-item-card';
+      
+      const profLabel = document.createElement('label');
+      profLabel.textContent = `Профессия (${base}):`;
+      profCard.appendChild(profLabel);
+      
+      const profBase = document.createElement('div');
+      profBase.className = 'dict-base-text';
+      profBase.textContent = prof.name;
+      profCard.appendChild(profBase);
+      
+      const profInput = document.createElement('input');
+      profInput.className = 'dict-translation-input';
+      profInput.type = 'text';
+      profInput.placeholder = `Перевод на ${target}`;
+      const profKey = `prof_${idx}_name`;
+      if (!dictData.professions) dictData.professions = {};
+      if (!dictData.professions[target]) dictData.professions[target] = {};
+      profInput.value = dictData.professions[target][profKey] || '';
+      profInput.addEventListener('input', e => {
+        if (!dictData.professions[target]) dictData.professions[target] = {};
+        dictData.professions[target][profKey] = e.target.value;
+      });
+      profCard.appendChild(profInput);
+      
+      profsSection.appendChild(profCard);
+    });
+  }
+  
+  editor.appendChild(profsSection);
+}
+
+function exportDict(){
+  const dataStr = JSON.stringify(dictData, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'dict.json';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function applyTranslations(){
+  // Восстанавливаем оригинальные данные перед применением переводов
+  if (originalTestData && originalTestData.tests && originalTestData.tests.length > 0) {
+    // Создаем глубокую копию оригинальных данных
+    testData.tests = originalTestData.tests.map(test => {
+      return JSON.parse(JSON.stringify(test));
+    });
+  } else if (!testData || !testData.tests || testData.tests.length === 0) {
+    // Если нет оригинальных данных и нет текущих данных, выходим
+    console.warn('No test data available for translation');
+    return;
+  }
+  
+  if (currentLang === 'ru' || !dictData.languages || !dictData.languages[currentLang]) {
+    // Если русский язык, данные уже в оригинальном виде
+    return;
+  }
+  
+  const translations = dictData.languages[currentLang];
+  if (!translations) {
+    console.warn('No translations found for language:', currentLang);
+    return;
+  }
+  
+  // Применяем переводы к тестам
+  if (testData && testData.tests && Array.isArray(testData.tests)) {
+    testData.tests.forEach((test, idx) => {
+      if (!test) return;
+      
+      const nameKey = `test_${idx}_name`;
+      if (translations[nameKey]) {
+        test.name = translations[nameKey];
+      } else {
+        // Если перевод не найден, оставляем оригинальное название
+        console.warn('Translation not found for test:', nameKey, 'original:', test.name);
+      }
+      
+      if (test.questions && Array.isArray(test.questions)) {
+        test.questions.forEach((q, qIdx) => {
+          if (!q) return;
+          
+          const qKey = `test_${idx}_q_${qIdx}`;
+          if (translations[qKey]) q.text = translations[qKey];
+          
+          if (q.answers && Array.isArray(q.answers)) {
+            q.answers.forEach((a, aIdx) => {
+              if (!a) return;
+              
+              const aKey = `test_${idx}_q_${qIdx}_a_${aIdx}`;
+              if (translations[aKey]) a.text = translations[aKey];
+            });
+          }
+        });
+      }
+    });
+  }
+  
+  // Применяем переводы к профессиям
+  if (profData && profData.professions && Array.isArray(profData.professions) && 
+      dictData.professions && dictData.professions[currentLang]) {
+    const profTranslations = dictData.professions[currentLang];
+    profData.professions.forEach((prof, idx) => {
+      if (!prof) return;
+      const profKey = `prof_${idx}_name`;
+      if (profTranslations[profKey]) {
+        prof.name = profTranslations[profKey];
+      }
+    });
+  }
+}
+
+function changeLanguage(lang){
+  currentLang = lang;
+  localStorage.setItem('currentLang', currentLang);
+  location.reload();
+}
+
+function getUITranslation(key, defaultValue) {
+  if (currentLang === 'ru' || !dictData.ui || !dictData.ui[currentLang]) {
+    return defaultValue;
+  }
+  return dictData.ui[currentLang][key] || defaultValue;
+}
+
+function getTranslatedTestName(testIndexOrName) {
+  // Если передан индекс
+  if (typeof testIndexOrName === 'number') {
+    const test = testData.tests[testIndexOrName];
+    if (!test) return '';
+    return test.name; // test.name уже переведен в applyTranslations()
+  }
+  
+  // Если передан строкой - ищем тест по оригинальному названию
+  if (typeof testIndexOrName === 'string') {
+    const testIndex = testData.tests ? testData.tests.findIndex(t => {
+      // Проверяем оригинальное название (до перевода)
+      const originalName = getOriginalTestName(t);
+      return originalName === testIndexOrName || t.name === testIndexOrName;
+    }) : -1;
+    
+    if (testIndex >= 0 && testData.tests[testIndex]) {
+      return testData.tests[testIndex].name; // Уже переведено
+    }
+    
+    return testIndexOrName; // Если не нашли, возвращаем как есть
+  }
+  
+  return '';
+}
+
+function getOriginalTestName(test) {
+  if (!test || !testData.tests) return test ? test.name : '';
+  
+  const testIndex = testData.tests.indexOf(test);
+  if (testIndex < 0) return test.name;
+  
+  // Если язык русский, название уже оригинальное
+  if (currentLang === 'ru') return test.name;
+  
+  // Используем сохраненные оригинальные данные
+  if (originalTestData && originalTestData.tests && originalTestData.tests[testIndex]) {
+    return originalTestData.tests[testIndex].name;
+  }
+  
+  // Если оригинальные данные недоступны, ищем в PROF_TEST_MAPPING
+  if (testIndex < PROF_TEST_MAPPING.length) {
+    return PROF_TEST_MAPPING[testIndex].testName;
+  }
+  
+  // Если не нашли, возвращаем текущее название
+  return test.name;
+}
+
+function getTranslatedAnswersMeaning(testIndex, key) {
+  const test = testData.tests[testIndex];
+  if (!test || !test.answersMeaning) return '';
+  
+  const originalValue = test.answersMeaning[key];
+  if (!originalValue) return '';
+  
+  // Если язык русский, возвращаем оригинал
+  if (currentLang === 'ru') return originalValue;
+  
+  // Ищем перевод в словаре
+  const translationKey = `answers_meaning_${testIndex}_${key}`;
+  if (dictData.ui && dictData.ui[currentLang] && dictData.ui[currentLang][translationKey]) {
+    return dictData.ui[currentLang][translationKey];
+  }
+  
+  return originalValue;
+}
+
+function applyUITranslations(){
+  if (currentLang === 'ru' || !dictData.ui || !dictData.ui[currentLang]) return;
+  
+  const uiTranslations = dictData.ui[currentLang];
+  
+  // Функция для получения перевода
+  function t(key, defaultValue) {
+    return uiTranslations[key] || defaultValue;
+  }
+  
+  // Переводим элементы с data-i18n атрибутом (но не перезаписываем, если там уже есть контент)
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    // Пропускаем элементы, которые уже содержат структурированный контент (не только текст)
+    if (el.children.length > 0 || el.innerHTML.trim() !== el.textContent.trim()) {
+      return; // Пропускаем элементы с HTML-структурой
+    }
+    const key = el.getAttribute('data-i18n');
+    const defaultValue = el.textContent.trim();
+    el.textContent = t(key, defaultValue);
+  });
+  
+  // Заголовки страниц
+  const brandElements = document.querySelectorAll('.top-nav__brand');
+  brandElements.forEach(el => {
+    const text = el.textContent.trim();
+    if (text === 'Познай самого себя') el.textContent = t('app_title', text);
+    else if (text === 'История тестов') el.textContent = t('history_title', text);
+    else if (text === 'Корректировка профессий') el.textContent = t('professions_title', text);
+    else if (text === 'Словари') el.textContent = t('dict_title', text);
+    else if (text === 'Результаты') el.textContent = t('results_title', text);
+    else if (text === 'Тест') el.textContent = t('test_title', text);
+  });
+  
+  // Кнопки навигации
+  const navLinks = document.querySelectorAll('.top-nav__actions .btn');
+  navLinks.forEach(link => {
+    const text = link.textContent.trim();
+    if (text === 'История') link.textContent = t('btn_history', text);
+    else if (text === 'Корректировка профессий') link.textContent = t('btn_professions', text);
+    else if (text === 'Словари') link.textContent = t('btn_dict', text);
+    else if (text === 'Домой') link.textContent = t('btn_home', text);
+    else if (text === 'Очистить историю') link.textContent = t('btn_clear_history', text);
+    else if (text === 'Экспорт словаря') link.textContent = t('btn_export_dict', text);
+    else if (text === 'Добавить') link.textContent = t('btn_add', text);
+    else if (text === 'Сохранить' || text === 'Сохранить изменения' || text === 'Сохранено') link.textContent = t('btn_save', text);
+    else if (text === 'Экспорт') link.textContent = t('btn_export', text);
+  });
+  
+  // Кнопки в основном контенте
+  const contentButtons = document.querySelectorAll('main .btn, #test-container ~ .btn');
+  contentButtons.forEach(btn => {
+    const text = btn.textContent.trim();
+    if (text === 'Отправить') btn.textContent = t('btn_submit', text);
+    else if (text === 'Сравнить') btn.textContent = t('btn_compare', text);
+  });
+  
+  // Заголовки h1
+  const h1Elements = document.querySelectorAll('h1');
+  h1Elements.forEach(h1 => {
+    const text = h1.textContent.trim();
+    if (text === 'Познай самого себя') h1.textContent = t('app_title', text);
+  });
+  
+  // Тексты на странице словарей
+  const dictDesc = document.querySelector('main > p');
+  if (dictDesc && dictDesc.textContent.includes('Выберите базовый язык')) {
+    dictDesc.textContent = t('dict_description', dictDesc.textContent);
+  }
+  
+  const dictManagement = document.querySelector('.dict-controls-panel h3');
+  if (dictManagement && dictManagement.textContent === 'Управление') {
+    dictManagement.textContent = t('dict_management', dictManagement.textContent);
+  }
+  
+  const baseLangLabel = document.querySelector('.dict-lang-selector label');
+  if (baseLangLabel && baseLangLabel.textContent.includes('Базовый язык')) {
+    baseLangLabel.textContent = t('dict_base_lang', baseLangLabel.textContent);
+  }
+  
+  const targetLangLabels = document.querySelectorAll('.dict-lang-selector label');
+  targetLangLabels.forEach(label => {
+    if (label.textContent.includes('Язык перевода')) {
+      label.textContent = t('dict_target_lang', label.textContent);
+    }
+  });
+  
+  const loadDictBtn = document.getElementById('load-dict-btn');
+  if (loadDictBtn && loadDictBtn.textContent === 'Загрузить словарь') {
+    loadDictBtn.textContent = t('btn_load_dict', loadDictBtn.textContent);
+  }
+  
+  // Заголовки секций в словаре
+  const dictSectionTitles = document.querySelectorAll('.dict-section h3');
+  dictSectionTitles.forEach(h3 => {
+    if (h3.textContent === 'Переводы тестов') {
+      h3.textContent = t('dict_test_translations', h3.textContent);
+    } else if (h3.textContent === 'Переводы профессий') {
+      h3.textContent = t('dict_prof_translations', h3.textContent);
+    }
+  });
+  
+  // Описание на странице профессий
+  const profDesc = document.querySelector('main > p');
+  if (profDesc && profDesc.textContent.includes('Выберите профессию')) {
+    profDesc.textContent = t('prof_description', profDesc.textContent);
+  }
+  
+  // Title атрибут для select
+  const langSelect = document.getElementById('lang-select');
+  if (langSelect && langSelect.title === 'Выбрать язык') {
+    langSelect.title = t('select_lang', langSelect.title);
+  }
+  
+  // Обновляем title страницы
+  if (document.title) {
+    const titleText = document.title;
+    if (titleText === 'Познай самого себя') document.title = t('app_title', titleText);
+    else if (titleText === 'История') document.title = t('history_title', titleText);
+    else if (titleText === 'Корректировка профессий') document.title = t('professions_title', titleText);
+    else if (titleText === 'Словари') document.title = t('dict_title', titleText);
+    else if (titleText === 'Результаты') document.title = t('results_title', titleText);
+    else if (titleText === 'Тест') document.title = t('test_title', titleText);
+  }
+}
+
+function initLanguageSelector(){
+  const select = document.getElementById('lang-select');
+  if (select) {
+    select.value = currentLang;
+  }
 }
 
 function markProfChanges(saved){

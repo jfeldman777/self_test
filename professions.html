@@ -11,6 +11,11 @@
 <header class="top-nav">
   <div class="top-nav__brand">Корректировка профессий</div>
   <div class="top-nav__actions">
+    <a class="btn" href="dict.html">Словари</a>
+    <select class="btn lang-select" id="lang-select" onchange="changeLanguage(this.value)" title="Выбрать язык">
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+    </select>
     <a class="btn" href="index.html">Домой</a>
     <button class="btn" id="add-prof-btn">Добавить</button>
     <button class="btn" id="save-prof-btn">Сохранить</button>

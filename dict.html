@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Словари</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+<header class="top-nav">
+  <div class="top-nav__brand">Словари</div>
+  <div class="top-nav__actions">
+    <button class="btn" id="export-dict-btn">Экспорт словаря</button>
+    <a class="btn" href="index.html">Домой</a>
+  </div>
+</header>
+
+<main>
+  <p>Выберите базовый язык и редактируйте переводы для другого языка.</p>
+  
+  <div class="dict-editor-layout">
+    <div class="dict-controls-panel">
+      <h3>Управление</h3>
+      <div class="dict-lang-selector">
+        <label>Базовый язык:</label>
+        <select id="base-lang-select">
+          <option value="ru">Русский</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="dict-lang-selector">
+        <label>Язык перевода:</label>
+        <select id="target-lang-select">
+          <option value="en">English</option>
+          <option value="ru">Русский</option>
+        </select>
+      </div>
+      <button class="btn" id="load-dict-btn">Загрузить словарь</button>
+    </div>
+    
+    <div class="dict-content-panel">
+      <div id="dict-editor"></div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
+

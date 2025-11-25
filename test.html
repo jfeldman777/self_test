@@ -1,22 +1,28 @@
 <!DOCTYPE html>
-<html lang="EN">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
-  <title>Test</title>
+  <title>Тест</title>
 </head>
 <body>
+<header class="top-nav">
+  <div class="top-nav__brand" id="test-title">Тест</div>
+  <div class="top-nav__actions">
+    <select class="btn lang-select" id="lang-select" onchange="changeLanguage(this.value)" title="Выбрать язык">
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+    </select>
+    <a class="btn" href="index.html">Домой</a>
+  </div>
+</header>
 
-<h3>Test</h3>
-<h1 id="test-title">Test</h1>
-
-<div id="test-container"></div>
-
-<br><br>
-<button class="btn" onclick="finishTest()">Отправить</button>
-<br><br>
-<a class="btn" href="index.html">Домой</a>
+<main>
+  <div id="test-container"></div>
+  <button class="btn" onclick="finishTest()">Отправить</button>
+</main>
 
 </body>
 </html>

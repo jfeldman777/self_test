@@ -1,18 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
   <script src="radarChart.js" defer></script>
-
+  <title>Результаты</title>
 </head>
 <body>
+<header class="top-nav">
+  <div class="top-nav__brand">Результаты</div>
+  <div class="top-nav__actions">
+    <select class="btn lang-select" id="lang-select" onchange="changeLanguage(this.value)" title="Выбрать язык">
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+    </select>
+    <a class="btn" href="index.html">Домой</a>
+  </div>
+</header>
 
-<h2>Results</h2>
-<div id="result-container"></div>
-<div id="chart"></div>
-
-<a class="btn" href="index.html">Домой</a>
+<main>
+  <div id="result-container"></div>
+  <div id="chart"></div>
+</main>
 </body>
 </html>
