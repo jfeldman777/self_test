@@ -327,12 +327,16 @@ function loadHistory(){
   profContainer.className = 'professions-list';
   div.appendChild(profContainer);
 
-  profData.professions.forEach((p,pi)=>{
+  // Сортируем профессии по алфавиту
+  const sortedProfs = profData.professions.map((p, pi) => ({ prof: p, index: pi }))
+    .sort((a, b) => (a.prof.name || '').localeCompare(b.prof.name || '', 'ru'));
+  
+  sortedProfs.forEach(({ prof, index }) => {
     const label = document.createElement('label');
     label.className = 'prof-option';
     label.innerHTML = `
-      <input type="radio" name="prof" value="${pi}">
-      ${p.name}
+      <input type="radio" name="prof" value="${index}">
+      ${prof.name}
     `;
     profContainer.appendChild(label);
   });
@@ -743,12 +747,17 @@ function renderProfessionsList(){
     return;
   }
 
-  profEditorState.list.forEach((prof, idx) => {
+  // Сортируем профессии по алфавиту, сохраняя оригинальные индексы
+  const sortedProfs = profEditorState.list.map((prof, idx) => ({ prof, originalIdx: idx }))
+    .sort((a, b) => (a.prof.name || '').localeCompare(b.prof.name || '', 'ru'));
+
+  sortedProfs.forEach(({ prof, originalIdx }) => {
     const btn = document.createElement('button');
-    btn.className = 'prof-select-btn' + (idx === profEditorState.currentIndex ? ' active' : '');
-    btn.textContent = prof.name || `Профессия ${idx + 1}`;
+    const isActive = originalIdx === profEditorState.currentIndex;
+    btn.className = 'prof-select-btn' + (isActive ? ' active' : '');
+    btn.textContent = prof.name || `Профессия ${originalIdx + 1}`;
     btn.addEventListener('click', () => {
-      profEditorState.currentIndex = idx;
+      profEditorState.currentIndex = originalIdx;
       renderProfessionsList();
       renderProfForm();
     });
