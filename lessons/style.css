@@ -69,12 +69,16 @@ header h1 {
 
 .section-content {
   overflow: hidden;
-  max-height: 0;
   transition: max-height 0.3s ease-out;
 }
 
 .section-content.section-collapsed {
   max-height: 0;
+}
+
+.section-content.section-collapsed ol {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .section-content:not(.section-collapsed) {
@@ -85,8 +89,12 @@ header h1 {
 .section-content ul {
   margin: 0;
   padding: 20px;
-  padding-top: 0;
   padding-left: 40px;
+  padding-right: 20px;
+}
+
+.section-content.section-collapsed ol > li:not(:first-child) {
+  display: none;
 }
 
 .section-content li {
