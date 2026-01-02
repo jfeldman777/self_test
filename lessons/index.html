@@ -9,11 +9,42 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon" sizes="32x32">
 </head>
 <body>
+    <button id="welcome-button" onclick="showWelcome()">Прослушать приветствие</button>
+    
+    <!-- Audio Player -->
+    <div id="audio-player" class="audio-player" style="display: none;">
+        <div class="player-content">
+            <div class="player-info">
+                <span id="player-title">Воспроизведение аудио</span>
+                <span id="player-time">00:00 / 00:00</span>
+            </div>
+            <div class="player-controls">
+                <button id="play-pause-btn" class="control-btn" onclick="togglePlayPause()">
+                    <span id="play-pause-icon">⏸</span>
+                </button>
+                <button id="stop-btn" class="control-btn" onclick="stopAudio()">
+                    <span>⏹</span>
+                </button>
+                <button id="restart-btn" class="control-btn" onclick="restartAudio()">
+                    <span>⏮</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <header>
         <h1>Курсы зима-весна 2026</h1>
         <h2>Место для дискуссий по самым интересным вопросам</h2>
         <h3>начало 5 января 2026 года в 22 по Москве, 21 по Киеву</h3>
+        <!--Кнопка чтобы прослушать приветствие-->
+       
     </header>
+        <div id="welcome-content" style="display: none;">
+            <h2>Приветствие</h2>
+            <p>Добро пожаловать на курсы зима-весна 2026!</p>
+            <p>Мы рады видеть вас на наших курсах. Наши курсы проводятся по понедельникам в зуме с 22 00 по Москве, с 21 00 по Киеву.</p>
+            <p>Мы будем обсуждать самые интересные вопросы философии и практической философии.</p>
+        </div>
     <main>
         <section class="accordion-section">
             <div class="section-header">
