@@ -204,6 +204,23 @@ table, td, th {
   transform: scale(0.95);
 }
 
+.pay {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e4e8;
+  color: #0c3383;
+  font-size: 33px;
+}
+
+.pay p {
+  margin: 0;
+  padding: 0;
+}
+
+.pay p:first-child {
+  margin-bottom: 10px;
+}
 /* #welcome-button {
   background: #2563eb;
   color: white;
