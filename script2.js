@@ -1,14 +1,16 @@
 // Данные приоритетов (можно изменить)
 const priorities = [
-  { id: 6, text: "понимать что происходит" },
-  { id: 7, text: "новых гениальных идей" },
-  { id: 8, text: "спасти этот мир, и чтобы никто не ушел обиженным" },
-  { id: 5, text: "свободы и самостоятельности" },
-  { id: 1, text: "удовольствия и комфорта" },
-  { id: 2, text: "быть среди своих" },
-  { id: 3, text: "победить, быть первым" },
-  { id: 4, text: "справедливости и порядка" }
+  { id: 6, text: "понимать что происходит", value: 0 },
+  { id: 7, text: "новых гениальных идей", value: 0 },
+  { id: 8, text: "спасти этот мир, и чтобы никто не ушел обиженным", value: 0 },
+  { id: 5, text: "свободы и самостоятельности", value: 0 },
+  { id: 1, text: "удовольствия и комфорта", value: 0 },
+  { id: 2, text: "быть среди своих", value: 0 },
+  { id: 3, text: "победить, быть первым", value: 0 },
+  { id: 4, text: "справедливости и порядка", value: 0 }
 ];
+
+const REQUIRED_SUM = 100; // Требуемая сумма в процентах
 
 let draggedElement = null;
 let draggedIndex = null;
@@ -16,6 +18,7 @@ let draggedIndex = null;
 document.addEventListener('DOMContentLoaded', function() {
   const prioritiesList = document.getElementById('priorities-list');
   const saveButton = document.getElementById('save-button');
+  const errorMessage = document.getElementById('error-message');
   
   // Инициализация списка приоритетов
   function renderPriorities() {
@@ -24,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const item = createPriorityItem(priority, index);
       prioritiesList.appendChild(item);
     });
+    validateSum();
   }
   
   // Создание элемента приоритета
@@ -37,8 +41,38 @@ document.addEventListener('DOMContentLoaded', function() {
     item.innerHTML = `
       <div class="priority-number">${index + 1}</div>
       <div class="priority-text">${priority.text}</div>
+      <div class="priority-input-wrapper">
+        <input type="number" 
+               class="priority-input" 
+               min="0" 
+               max="100" 
+               value="${priority.value || ''}" 
+               data-id="${priority.id}"
+               placeholder="0">
+        <span class="percent-sign">%</span>
+      </div>
       <div class="drag-handle">⋮⋮</div>
     `;
+    
+    // Обработчик ввода числа
+    const input = item.querySelector('.priority-input');
+    input.addEventListener('input', function() {
+      const value = parseFloat(this.value) || 0;
+      // Ограничиваем значение максимумом 100
+      const clampedValue = Math.min(100, Math.max(0, value));
+      if (clampedValue !== value) {
+        this.value = clampedValue;
+      }
+      
+      const priorityId = parseInt(this.dataset.id);
+      const priority = priorities.find(p => p.id === priorityId);
+      if (priority) {
+        priority.value = clampedValue;
+      }
+      
+      // Только обновляем валидацию суммы, без сортировки
+      validateSum();
+    });
     
     // Обработчики событий drag and drop
     item.addEventListener('dragstart', handleDragStart);
@@ -49,6 +83,57 @@ document.addEventListener('DOMContentLoaded', function() {
     item.addEventListener('drop', handleDrop);
     
     return item;
+  }
+  
+  // Сортировка по убыванию процентов
+  function sortByValueDescending() {
+    priorities.sort((a, b) => {
+      const valueA = a.value || 0;
+      const valueB = b.value || 0;
+      // Сначала по убыванию значения, если значения равны - сохраняем порядок по id
+      if (valueB !== valueA) {
+        return valueB - valueA;
+      }
+      return a.id - b.id;
+    });
+  }
+  
+  // Проверка, отсортирован ли список по убыванию
+  function isSortedByDescending() {
+    for (let i = 0; i < priorities.length - 1; i++) {
+      const current = priorities[i].value || 0;
+      const next = priorities[i + 1].value || 0;
+      if (current < next) {
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  // Подсчет суммы всех значений
+  function calculateSum() {
+    return priorities.reduce((sum, priority) => sum + (priority.value || 0), 0);
+  }
+  
+  // Валидация суммы
+  function validateSum() {
+    const sum = calculateSum();
+    const isValid = sum === REQUIRED_SUM;
+    
+    if (errorMessage) {
+      if (isValid) {
+        errorMessage.style.display = 'none';
+      } else {
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = `Сумма должна быть равна ${REQUIRED_SUM}%. Текущая сумма: ${sum}%`;
+      }
+    }
+    
+    if (saveButton) {
+      saveButton.disabled = !isValid;
+    }
+    
+    return isValid;
   }
   
   // Обработчик начала перетаскивания
@@ -105,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
       priorities.splice(draggedIndex, 1);
       priorities.splice(dropIndex, 0, draggedPriority);
       
-      // Перерисовываем список
+      // Перерисовываем список без сортировки
       renderPriorities();
     }
     
@@ -115,15 +200,28 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Обработчик сохранения порядка
   saveButton.addEventListener('click', function() {
+    // Проверяем сумму - кнопка активна только если сумма равна 100%
+    if (!validateSum()) {
+      return;
+    }
+    
+    // Принудительно сортируем по убыванию перед сохранением
+    sortByValueDescending();
+    renderPriorities();
+    
     const order = priorities.map((p, index) => ({
       position: index + 1,
       id: p.id,
-      text: p.text
+      text: p.text,
+      value: p.value || 0
     }));
     
     console.log('Порядок приоритетов:', order);
+    console.log('Сумма:', calculateSum());
+    
     alert('Порядок приоритетов сохранен!\n\n' + 
-          order.map((item, index) => `${index + 1}. ${item.text}`).join('\n'));
+          order.map((item, index) => `${index + 1}. ${item.text} - ${item.value}%`).join('\n') +
+          `\n\nОбщая сумма: ${calculateSum()}%`);
     
     // Здесь можно отправить данные на сервер
     // fetch('/api/save-priorities', {
