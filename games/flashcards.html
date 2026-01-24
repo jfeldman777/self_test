@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Флэш-карточки</title>
+    <link rel="stylesheet" href="flashcards.css">
+    <script src="flashcards.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Флэш-карточки</h1>
+        
+        <div class="stats-section">
+            <div class="stat-item">
+                <span class="stat-label">Спрошено:</span>
+                <span id="total-count">0</span>
+            </div>
+            <div class="stat-item correct">
+                <span class="stat-label">Верно:</span>
+                <span id="correct-count">0</span>
+            </div>
+            <div class="stat-item incorrect">
+                <span class="stat-label">Неверно:</span>
+                <span id="incorrect-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Точность:</span>
+                <span id="accuracy">0%</span>
+            </div>
+        </div>
+
+        <div class="card-section">
+            <div id="card" class="card">
+                <div id="question-area" class="question-area">
+                    <div class="label">Вопрос:</div>
+                    <div id="question-text" class="question-text"></div>
+                </div>
+                <div id="answer-area" class="answer-area" style="display: none;">
+                    <div class="label">Ответ:</div>
+                    <div id="answer-text" class="answer-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <button id="show-answer-btn" class="show-answer-btn" style="display: none;">Показать ответ</button>
+            <div id="feedback-buttons" class="feedback-buttons" style="display: none;">
+                <button id="correct-btn" class="feedback-btn correct-btn">✓ Верно</button>
+                <button id="incorrect-btn" class="feedback-btn incorrect-btn">✗ Неверно</button>
+            </div>
+            <button id="next-btn" class="next-btn" style="display: none;">Следующий вопрос</button>
+        </div>
+    </div>
+</body>
+</html>
