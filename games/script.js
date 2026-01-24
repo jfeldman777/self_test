@@ -8,6 +8,72 @@
 const gameLevels = [
   {
     level: 1,
+    name: 'Поле внимания',
+    rows: 8,
+    cols: 2,
+    headers: ['Уровень', 'Поле внимания'],
+    elements: [
+      // Строка 1
+      { id: 1, content: '1' },
+      { id: 2, content: 'один объект' },
+      // Строка 2
+      { id: 3, content: '2' },
+      { id: 4, content: 'много объектов' },
+      // Строка 3
+      { id: 5, content: '3' },
+      { id: 6, content: 'один процесс' },
+      // Строка 4
+      { id: 7, content: '4' },
+      { id: 8, content: 'много процессов' },
+      // Строка 5
+      { id: 9, content: '5' },
+      { id: 10, content: 'одна карта' },
+      // Строка 6
+      { id: 11, content: '6' },
+      { id: 12, content: 'много карт' },
+      // Строка 7
+      { id: 13, content: '7' },
+      { id: 14, content: 'одна система' },
+      // Строка 8
+      { id: 15, content: '8' },
+      { id: 16, content: 'много систем' }
+    ]
+  },
+  {
+    level: 2,
+    name: 'Геометрия',
+    rows: 8,
+    cols: 2,
+    headers: ['Уровень', 'Геометрия'],
+    elements: [
+      // Строка 1
+      { id: 1, content: '1' },
+      { id: 2, content: 'Точка' },
+      // Строка 2
+      { id: 3, content: '2' },
+      { id: 4, content: 'Куча точек' },
+      // Строка 3
+      { id: 5, content: '3' },
+      { id: 6, content: 'линия' },
+      // Строка 4
+      { id: 7, content: '4' },
+      { id: 8, content: 'пучок линий' },
+      // Строка 5
+      { id: 9, content: '5' },
+      { id: 10, content: 'плоскость' },
+      // Строка 6
+      { id: 11, content: '6' },
+      { id: 12, content: 'пачка плоскостей' },
+      // Строка 7
+      { id: 13, content: '7' },
+      { id: 14, content: 'универсум' },
+      // Строка 8
+      { id: 15, content: '8' },
+      { id: 16, content: 'мультиверсум' }
+    ]
+  },
+  {
+    level: 3,
     name: 'Мышление',
     rows: 8,
     cols: 6,
@@ -72,7 +138,7 @@ const gameLevels = [
     ]
   },
   {
-    level: 2,
+    level: 4,
     name: 'Сознание',
     rows: 8,
     cols: 4,
@@ -121,7 +187,7 @@ const gameLevels = [
     ]
   },
   {
-    level: 3,
+    level: 5,
     name: 'Взаимодействие',
     rows: 8,
     cols: 6,
@@ -186,40 +252,40 @@ const gameLevels = [
     ]
   },
   {
-    level: 4,
-    name: 'Кодировки',
-    rows: 3,
-    cols: 7,
-    headers: ['Кодировки', '1', '2', '3', '12', '23', '13'],
+    level: 6,
+    name: 'Эпоха',
+    rows: 8,
+    cols: 2,
+    headers: ['Уровень', 'Эпоха'],
     elements: [
       // Строка 1
-      { id: 1, content: 'мелкие' },
-      { id: 2, content: 'ухо' },
-      { id: 3, content: 'глаз' },
-      { id: 4, content: 'рука' },
-      { id: 5, content: 'обоняние' },
-      { id: 6, content: 'вкус' },
-      { id: 7, content: 'интуиция' },
+      { id: 1, content: '1' },
+      { id: 2, content: 'Охотники' },
       // Строка 2
-      { id: 8, content: 'средние' },
-      { id: 9, content: 'текст' },
-      { id: 10, content: 'картинка' },
-      { id: 11, content: 'схема' },
-      { id: 12, content: 'таблица' },
-      { id: 13, content: 'диаграмма' },
-      { id: 14, content: 'иллюстрация' },
+      { id: 3, content: '2' },
+      { id: 4, content: 'Аграрии' },
       // Строка 3
-      { id: 15, content: 'крупные' },
-      { id: 16, content: 'образы' },
-      { id: 17, content: 'смыслы' },
-      { id: 18, content: 'сценарии' },
-      { id: 19, content: 'видения' },
-      { id: 20, content: 'метафоры' },
-      { id: 21, content: 'эвристики' }
+      { id: 5, content: '3' },
+      { id: 6, content: 'Античные империи' },
+      // Строка 4
+      { id: 7, content: '4' },
+      { id: 8, content: 'Средневековье' },
+      // Строка 5
+      { id: 9, content: '5' },
+      { id: 10, content: 'Возрождение-Реформация' },
+      // Строка 6
+      { id: 11, content: '6' },
+      { id: 12, content: 'индустриальный век' },
+      // Строка 7
+      { id: 13, content: '7' },
+      { id: 14, content: 'XX век' },
+      // Строка 8
+      { id: 15, content: '8' },
+      { id: 16, content: 'Наше время' }
     ]
   },
   {
-    level: 5,
+    level: 7,
     name: 'Темперамент',
     rows: 4,
     cols: 5,
@@ -251,6 +317,39 @@ const gameLevels = [
       { id: 20, content: 'неустойчивая' }
     ]
   },
+  {
+    level: 8,
+    name: 'Кодировки',
+    rows: 3,
+    cols: 7,
+    headers: ['Кодировки', '1', '2', '3', '12', '23', '13'],
+    elements: [
+      // Строка 1
+      { id: 1, content: 'мелкие' },
+      { id: 2, content: 'ухо' },
+      { id: 3, content: 'глаз' },
+      { id: 4, content: 'рука' },
+      { id: 5, content: 'обоняние' },
+      { id: 6, content: 'вкус' },
+      { id: 7, content: 'интуиция' },
+      // Строка 2
+      { id: 8, content: 'средние' },
+      { id: 9, content: 'текст' },
+      { id: 10, content: 'картинка' },
+      { id: 11, content: 'схема' },
+      { id: 12, content: 'таблица' },
+      { id: 13, content: 'диаграмма' },
+      { id: 14, content: 'иллюстрация' },
+      // Строка 3
+      { id: 15, content: 'крупные' },
+      { id: 16, content: 'образы' },
+      { id: 17, content: 'смыслы' },
+      { id: 18, content: 'сценарии' },
+      { id: 19, content: 'видения' },
+      { id: 20, content: 'метафоры' },
+      { id: 21, content: 'эвристики' }
+    ]
+  }
   // Добавьте больше уровней здесь
 ];
 
