@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра: Расставь элементы правильно</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Расставь элементы правильно</h1>
+        
+        <div class="controls-section">
+            <button id="start-game-btn" class="start-btn">ИГРА</button>
+            <button id="check-btn" class="check-btn" style="display: none;">ГОТОВО</button>
+            <button id="restart-btn" class="restart-btn" style="display: none;">СНАЧАЛА</button>
+            <button id="prev-level-btn" class="level-btn" style="display: none;">← Предыдущий</button>
+            <button id="next-level-btn" class="level-btn" style="display: none;">Следующий →</button>
+        </div>
+
+        <div class="reference-section">
+            <h2 id="level-name">Правильное расположение:</h2>
+            <div id="reference-table" class="reference-table"></div>
+        </div>
+
+        <div id="result-section" class="result-section" style="display: none;">
+            <div id="result-message"></div>
+        </div>
+    </div>
+</body>
+</html>
