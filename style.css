@@ -1,19 +1,22 @@
 body {
     font-family: Arial;
     padding: 20px;
-    background: #f5f5f5;
+    background: #e7e7d0;
   }
 
   .top-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #fff;
+    background: #9ee65b;
     padding: 8px 15px;
     border-radius: 8px;
     border: 1px solid #ddd;
     margin-bottom: 20px;
     gap: 10px;
+    
+    font-weight: bold;
+    font-size: 16px;
   }
 
   .top-nav__brand {
