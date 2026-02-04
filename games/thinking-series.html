@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мышление - Сознание - Взаимодействие</title>
+    <link rel="stylesheet" href="thinking-series.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Мышление - Сознание - Взаимодействие</h1>
+        
+        <div id="intro-screen" class="screen">
+            <div class="intro-content">
+                <p class="intro-text">Эта серия игр поможет вам оценить ваши предпочтения в трех областях:</p>
+                <ul class="intro-list">
+                    <li><strong>Мышление</strong> - как вы мыслите</li>
+                    <li><strong>Сознание</strong> - как вы воспринимаете мир</li>
+                    <li><strong>Взаимодействие</strong> - как вы взаимодействуете с другими</li>
+                </ul>
+                <p class="intro-text">В каждой игре вам будут предложены слова в случайном порядке. Для каждого слова выберите, насколько оно вам подходит, используя шкалу от "Нет" до "Да".</p>
+                <button id="start-series-btn" class="start-btn">Начать серию игр</button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen" style="display: none;">
+            <div class="game-header">
+                <h2 id="game-title">Мышление</h2>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <p class="progress-text">Слово <span id="current-word-num">1</span> из <span id="total-words">0</span></p>
+            </div>
+
+            <div id="word-container" class="word-container">
+                <!-- Слова будут добавлены динамически -->
+            </div>
+
+            <div class="game-controls">
+                <button id="next-word-btn" class="next-btn" style="display: none;">Следующее слово</button>
+                <button id="finish-game-btn" class="finish-btn" style="display: none;">Завершить игру</button>
+            </div>
+        </div>
+
+        <div id="results-screen" class="screen" style="display: none;">
+            <h2>Результаты</h2>
+            <div id="results-chart-container" class="chart-container">
+                <canvas id="results-chart"></canvas>
+            </div>
+            <div id="results-table" class="results-table"></div>
+            <div class="results-controls">
+                <button id="restart-series-btn" class="restart-btn">Начать заново</button>
+                <a href="index.html" class="home-btn">Вернуться к играм</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="thinking-series.js"></script>
+</body>
+</html>
