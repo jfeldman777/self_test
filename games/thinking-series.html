@@ -23,6 +23,7 @@
                 <button id="start-series-btn" class="start-btn">Начать серию игр</button>
                 <button id="view-last-results-btn" class="view-results-btn" style="display: none;">Посмотреть последние результаты</button>
                 <button id="random-fill-btn" class="random-fill-btn">Заполнить случайно и показать результаты</button>
+                <button id="history-btn" class="history-btn">История</button>
             </div>
         </div>
 
@@ -54,7 +55,17 @@
             <div id="results-table" class="results-table"></div>
             <div class="results-controls">
                 <button id="restart-series-btn" class="restart-btn">Начать заново</button>
-                <a href="index.html" class="home-btn">Вернуться к играм</a>
+                <button id="results-home-btn" class="home-btn">Домой</button>
+            </div>
+        </div>
+
+        <div id="history-screen" class="screen" style="display: none;">
+            <h2>История результатов</h2>
+            <div id="history-statistics" class="history-statistics"></div>
+            <div id="history-list" class="history-list"></div>
+            <div class="history-controls">
+                <button id="clear-history-btn" class="clear-history-btn">Очистить историю</button>
+                <button id="history-home-btn" class="home-btn">Домой</button>
             </div>
         </div>
     </div>

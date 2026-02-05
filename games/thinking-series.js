@@ -117,6 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const restartBtn = document.getElementById('restart-series-btn');
     const viewLastResultsBtn = document.getElementById('view-last-results-btn');
     const randomFillBtn = document.getElementById('random-fill-btn');
+    const historyBtn = document.getElementById('history-btn');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
+    const historyHomeBtn = document.getElementById('history-home-btn');
+    const resultsHomeBtn = document.getElementById('results-home-btn');
 
     if (startBtn) startBtn.addEventListener('click', startSeries);
     if (nextWordBtn) nextWordBtn.addEventListener('click', nextWord);
@@ -124,6 +128,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (restartBtn) restartBtn.addEventListener('click', restartSeries);
     if (viewLastResultsBtn) viewLastResultsBtn.addEventListener('click', loadLastResults);
     if (randomFillBtn) randomFillBtn.addEventListener('click', fillRandomAndShowResults);
+    if (historyBtn) historyBtn.addEventListener('click', showHistory);
+    if (clearHistoryBtn) clearHistoryBtn.addEventListener('click', clearHistory);
+    if (historyHomeBtn) historyHomeBtn.addEventListener('click', function() {
+        showScreen('intro-screen');
+        checkForSavedResults();
+    });
+    if (resultsHomeBtn) resultsHomeBtn.addEventListener('click', function() {
+        showScreen('intro-screen');
+        checkForSavedResults();
+    });
 
     // Проверяем наличие сохраненных результатов
     checkForSavedResults();
@@ -131,35 +145,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Проверить наличие сохраненных результатов
 function checkForSavedResults() {
-    const savedResults = localStorage.getItem('thinkingSeriesResults');
+    const history = getHistory();
     const viewLastResultsBtn = document.getElementById('view-last-results-btn');
     
-    if (savedResults && viewLastResultsBtn) {
-        try {
-            const parsed = JSON.parse(savedResults);
-            if (parsed && Object.keys(parsed).length > 0) {
-                viewLastResultsBtn.style.display = 'inline-block';
-            }
-        } catch (e) {
-            console.warn('Error parsing saved results:', e);
-        }
+    if (history && history.length > 0 && viewLastResultsBtn) {
+        viewLastResultsBtn.style.display = 'inline-block';
+    }
+}
+
+// Получить историю результатов
+function getHistory() {
+    try {
+        const saved = localStorage.getItem('thinkingSeriesHistory');
+        if (!saved) return [];
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        console.warn('Error loading history:', e);
+        return [];
+    }
+}
+
+// Сохранить историю результатов
+function saveHistory(history) {
+    try {
+        localStorage.setItem('thinkingSeriesHistory', JSON.stringify(history));
+    } catch (e) {
+        console.warn('Error saving history:', e);
     }
 }
 
 // Загрузить последние результаты
 function loadLastResults() {
-    const savedResults = localStorage.getItem('thinkingSeriesResults');
-    if (!savedResults) return;
+    const history = getHistory();
+    if (!history || history.length === 0) return;
     
-    try {
-        const parsed = JSON.parse(savedResults);
-        if (parsed && Object.keys(parsed).length > 0) {
-            gameState.results = parsed;
-            showResults();
-        }
-    } catch (e) {
-        console.error('Error loading saved results:', e);
-        alert('Ошибка при загрузке сохраненных результатов');
+    // Берем последний результат из истории
+    const lastResult = history[history.length - 1];
+    if (lastResult && lastResult.results) {
+        gameState.results = lastResult.results;
+        showResults();
     }
 }
 
@@ -495,12 +520,187 @@ function finishCurrentGame() {
     }
 }
 
-// Сохранить результаты в localStorage
+// Сохранить результаты в localStorage (в историю)
 function saveResults() {
     try {
-        localStorage.setItem('thinkingSeriesResults', JSON.stringify(gameState.results));
+        const history = getHistory();
+        const now = new Date();
+        const dateTimeKey = now.toISOString();
+        const dateTimeDisplay = now.toLocaleString('ru-RU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        // Добавляем новый результат в историю
+        history.push({
+            dateTime: dateTimeKey,
+            dateTimeDisplay: dateTimeDisplay,
+            results: JSON.parse(JSON.stringify(gameState.results)) // Глубокая копия
+        });
+        
+        saveHistory(history);
     } catch (e) {
         console.warn('Error saving results:', e);
+    }
+}
+
+// Показать историю результатов
+function showHistory() {
+    showScreen('history-screen');
+    renderStatistics();
+    renderHistory();
+}
+
+// Вычислить математическое ожидание
+function calculateMean(values) {
+    if (values.length === 0) return 0;
+    const sum = values.reduce((acc, val) => acc + (val || 0), 0);
+    return sum / values.length;
+}
+
+// Вычислить стандартное отклонение
+function calculateStdDev(values, mean) {
+    if (values.length === 0) return 0;
+    const variance = values.reduce((acc, val) => {
+        const diff = (val || 0) - mean;
+        return acc + diff * diff;
+    }, 0) / values.length;
+    return Math.sqrt(variance);
+}
+
+// Отрендерить статистику по истории
+function renderStatistics() {
+    const container = document.getElementById('history-statistics');
+    if (!container) return;
+    
+    const history = getHistory();
+    
+    if (history.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    // Собираем все векторы для каждой игры
+    const gameVectors = {
+        'Мышление': [],
+        'Сознание': [],
+        'Взаимодействие': []
+    };
+    
+    history.forEach(entry => {
+        if (entry.results) {
+            Object.keys(gameVectors).forEach(gameName => {
+                if (entry.results[gameName]) {
+                    gameVectors[gameName].push(entry.results[gameName]);
+                }
+            });
+        }
+    });
+    
+    // Проверяем, есть ли данные
+    const hasData = Object.values(gameVectors).some(vectors => vectors.length > 0);
+    if (!hasData) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    // Получаем все уровни (1-8)
+    const levels = ['1', '2', '3', '4', '5', '6', '7', '8'];
+    
+    let html = '<div class="statistics-box"><h3>Статистика по истории</h3>';
+    
+    Object.keys(gameVectors).forEach(gameName => {
+        const vectors = gameVectors[gameName];
+        if (vectors.length === 0) return;
+        
+        html += `<div class="statistics-game"><h4>${gameName}</h4>`;
+        html += '<table class="statistics-table"><thead><tr><th>Уровень</th><th>Мат. ожидание</th><th>Ст. отклонение</th><th>Кол-во измерений</th></tr></thead><tbody>';
+        
+        levels.forEach(level => {
+            // Собираем значения для этого уровня из всех векторов
+            const values = vectors
+                .map(vector => vector[level])
+                .filter(val => val !== undefined && val !== null)
+                .map(val => Number(val) || 0);
+            
+            if (values.length > 0) {
+                const mean = calculateMean(values);
+                const stdDev = calculateStdDev(values, mean);
+                
+                html += `
+                    <tr>
+                        <td><strong>${level}</strong></td>
+                        <td>${mean.toFixed(3)}</td>
+                        <td>${stdDev.toFixed(3)}</td>
+                        <td>${values.length}</td>
+                    </tr>
+                `;
+            }
+        });
+        
+        html += '</tbody></table></div>';
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Отрендерить историю результатов
+function renderHistory() {
+    const container = document.getElementById('history-list');
+    if (!container) return;
+    
+    const history = getHistory();
+    
+    if (history.length === 0) {
+        container.innerHTML = '<p class="history-empty">История пуста</p>';
+        return;
+    }
+    
+    // Сортируем по дате (новые сначала)
+    const sortedHistory = [...history].sort((a, b) => {
+        return new Date(b.dateTime) - new Date(a.dateTime);
+    });
+    
+    let html = '<div class="history-items">';
+    
+    sortedHistory.forEach((entry, index) => {
+        html += `
+            <div class="history-item" data-index="${index}">
+                <div class="history-item-header">
+                    <span class="history-date">${entry.dateTimeDisplay}</span>
+                    <button class="history-view-btn" data-datetime="${entry.dateTime}">Просмотреть</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+    // Добавляем обработчики для кнопок просмотра
+    container.querySelectorAll('.history-view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dateTime = this.dataset.datetime;
+            const entry = history.find(e => e.dateTime === dateTime);
+            if (entry && entry.results) {
+                gameState.results = entry.results;
+                showResults();
+            }
+        });
+    });
+}
+
+// Очистить историю
+function clearHistory() {
+    if (confirm('Вы уверены, что хотите очистить всю историю результатов?')) {
+        saveHistory([]);
+        renderHistory();
+        checkForSavedResults(); // Обновляем видимость кнопки "Посмотреть последние результаты"
     }
 }
 
