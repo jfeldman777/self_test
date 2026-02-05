@@ -213,6 +213,35 @@ h1 {
   75% { transform: translateX(5px); }
 }
 
+.nav-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.link-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+  text-decoration: none;
+  text-align: center;
+}
+
+.link-btn:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}
+
 @media (max-width: 640px) {
   .container {
     padding: 24px;
@@ -228,5 +257,9 @@ h1 {
   
   .priority-text {
     font-size: 14px;
+  }
+  
+  .link-btn {
+    width: 100%;
   }
 }
