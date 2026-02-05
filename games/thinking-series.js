@@ -115,12 +115,124 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextWordBtn = document.getElementById('next-word-btn');
     const finishGameBtn = document.getElementById('finish-game-btn');
     const restartBtn = document.getElementById('restart-series-btn');
+    const viewLastResultsBtn = document.getElementById('view-last-results-btn');
+    const randomFillBtn = document.getElementById('random-fill-btn');
 
     if (startBtn) startBtn.addEventListener('click', startSeries);
     if (nextWordBtn) nextWordBtn.addEventListener('click', nextWord);
     if (finishGameBtn) finishGameBtn.addEventListener('click', finishCurrentGame);
     if (restartBtn) restartBtn.addEventListener('click', restartSeries);
+    if (viewLastResultsBtn) viewLastResultsBtn.addEventListener('click', loadLastResults);
+    if (randomFillBtn) randomFillBtn.addEventListener('click', fillRandomAndShowResults);
+
+    // Проверяем наличие сохраненных результатов
+    checkForSavedResults();
 });
+
+// Проверить наличие сохраненных результатов
+function checkForSavedResults() {
+    const savedResults = localStorage.getItem('thinkingSeriesResults');
+    const viewLastResultsBtn = document.getElementById('view-last-results-btn');
+    
+    if (savedResults && viewLastResultsBtn) {
+        try {
+            const parsed = JSON.parse(savedResults);
+            if (parsed && Object.keys(parsed).length > 0) {
+                viewLastResultsBtn.style.display = 'inline-block';
+            }
+        } catch (e) {
+            console.warn('Error parsing saved results:', e);
+        }
+    }
+}
+
+// Загрузить последние результаты
+function loadLastResults() {
+    const savedResults = localStorage.getItem('thinkingSeriesResults');
+    if (!savedResults) return;
+    
+    try {
+        const parsed = JSON.parse(savedResults);
+        if (parsed && Object.keys(parsed).length > 0) {
+            gameState.results = parsed;
+            showResults();
+        }
+    } catch (e) {
+        console.error('Error loading saved results:', e);
+        alert('Ошибка при загрузке сохраненных результатов');
+    }
+}
+
+// Заполнить случайными данными и показать результаты
+function fillRandomAndShowResults() {
+    // Сбрасываем состояние
+    gameState.currentGameIndex = 0;
+    gameState.results = {};
+    gameState.answers = {};
+    
+    // Проходим по всем играм
+    gameState.games.forEach((game, gameIndex) => {
+        // Извлекаем слова с уровнями
+        const wordsWithLevels = extractWordsWithLevels(game);
+        
+        // Заполняем случайными ответами
+        const answerOptions = ['no', 'probably_no', 'dont_know', 'probably_yes', 'yes'];
+        wordsWithLevels.forEach(wordData => {
+            if (wordData.isPair) {
+                // Для пар сохраняем одинаковый ответ для обоих слов
+                const randomAnswer = answerOptions[Math.floor(Math.random() * answerOptions.length)];
+                gameState.answers[wordData.id1] = randomAnswer;
+                gameState.answers[wordData.id2] = randomAnswer;
+            } else {
+                const randomAnswer = answerOptions[Math.floor(Math.random() * answerOptions.length)];
+                gameState.answers[wordData.id] = randomAnswer;
+            }
+        });
+        
+        // Вычисляем вектор весов для каждого уровня
+        const levelWeights = {};
+        
+        wordsWithLevels.forEach(wordData => {
+            if (wordData.isPair) {
+                const answer = gameState.answers[wordData.id1];
+                if (answer) {
+                    const weight = ANSWER_WEIGHTS[answer] || 0;
+                    if (!levelWeights[wordData.level]) {
+                        levelWeights[wordData.level] = 0;
+                    }
+                    levelWeights[wordData.level] += weight;
+                }
+            } else {
+                const answer = gameState.answers[wordData.id];
+                if (answer) {
+                    const weight = ANSWER_WEIGHTS[answer] || 0;
+                    if (!levelWeights[wordData.level]) {
+                        levelWeights[wordData.level] = 0;
+                    }
+                    levelWeights[wordData.level] += weight;
+                }
+            }
+        });
+        
+        // Вычисляем максимальный вес для этой игры
+        const maxWeight = getMaxWeight(game);
+        
+        // Нормируем векторы
+        const normalizedWeights = {};
+        Object.keys(levelWeights).forEach(level => {
+            normalizedWeights[level] = maxWeight > 0 ? levelWeights[level] / maxWeight : 0;
+        });
+        
+        // Сохраняем результат
+        gameState.results[game.name] = normalizedWeights;
+    });
+    
+    // Сохраняем результаты
+    saveResults();
+    
+    // Показываем результаты
+    showResults();
+}
 
 // Начать серию игр
 function startSeries() {
@@ -377,7 +489,18 @@ function finishCurrentGame() {
     if (gameState.currentGameIndex < gameState.games.length) {
         startCurrentGame();
     } else {
+        // Сохраняем результаты в localStorage перед показом
+        saveResults();
         showResults();
+    }
+}
+
+// Сохранить результаты в localStorage
+function saveResults() {
+    try {
+        localStorage.setItem('thinkingSeriesResults', JSON.stringify(gameState.results));
+    } catch (e) {
+        console.warn('Error saving results:', e);
     }
 }
 
@@ -635,7 +758,10 @@ function restartSeries() {
     gameState.currentGameIndex = 0;
     gameState.results = {};
     gameState.answers = {};
+    // Не удаляем сохраненные результаты, чтобы можно было вернуться к ним
     showScreen('intro-screen');
+    // Обновляем видимость кнопки просмотра результатов
+    checkForSavedResults();
 }
 
 // Показать экран
