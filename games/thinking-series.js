@@ -551,6 +551,22 @@ function saveResults() {
 // Показать историю результатов
 function showHistory() {
     showScreen('history-screen');
+    // Добавляем подсказку под заголовком
+    const historyScreen = document.getElementById('history-screen');
+    if (historyScreen) {
+        const existingHint = historyScreen.querySelector('.history-hint');
+        if (!existingHint) {
+            const hint = document.createElement('p');
+            hint.className = 'history-hint';
+            hint.textContent = 'Желтые строки - признак случайного заполнения';
+            const h2 = historyScreen.querySelector('h2');
+            if (h2 && h2.nextSibling) {
+                historyScreen.insertBefore(hint, h2.nextSibling);
+            } else if (h2) {
+                h2.insertAdjacentElement('afterend', hint);
+            }
+        }
+    }
     renderStatistics();
     renderHistory();
 }
@@ -631,11 +647,18 @@ function renderStatistics() {
                 const mean = calculateMean(values);
                 const stdDev = calculateStdDev(values, mean);
                 
+                // Определяем, похоже ли на случайные ответы
+                // При случайных ответах: матожидание близко к 0, большое отклонение
+                const isRandomLike = Math.abs(mean) < 0.1 && stdDev > 0.3;
+                const rowClass = isRandomLike ? 'random-like' : '';
+                const meanClass = Math.abs(mean) < 0.1 ? 'near-zero' : '';
+                const stdDevClass = stdDev > 0.3 ? 'high-deviation' : '';
+                
                 html += `
-                    <tr>
+                    <tr class="${rowClass}">
                         <td><strong>${level}</strong></td>
-                        <td>${mean.toFixed(3)}</td>
-                        <td>${stdDev.toFixed(3)}</td>
+                        <td class="${meanClass}">${mean.toFixed(3)}</td>
+                        <td class="${stdDevClass}">${stdDev.toFixed(3)}</td>
                         <td>${values.length}</td>
                     </tr>
                 `;
