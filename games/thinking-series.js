@@ -384,8 +384,92 @@ function finishCurrentGame() {
 // Показать результаты
 function showResults() {
     showScreen('results-screen');
+    drawCorrelations();
     drawResultsChart();
     drawResultsTable();
+}
+
+// Вычислить корреляцию Пирсона между двумя векторами
+function calculateCorrelation(vector1, vector2) {
+    // Получаем общие ключи (уровни)
+    const keys = Object.keys(vector1).filter(key => vector2.hasOwnProperty(key));
+    
+    if (keys.length === 0) return 0;
+    
+    // Преобразуем в массивы значений
+    const values1 = keys.map(key => vector1[key] || 0);
+    const values2 = keys.map(key => vector2[key] || 0);
+    
+    // Вычисляем средние значения
+    const mean1 = values1.reduce((sum, val) => sum + val, 0) / values1.length;
+    const mean2 = values2.reduce((sum, val) => sum + val, 0) / values2.length;
+    
+    // Вычисляем числитель: Σ((xi - x̄)(yi - ȳ))
+    let numerator = 0;
+    for (let i = 0; i < values1.length; i++) {
+        numerator += (values1[i] - mean1) * (values2[i] - mean2);
+    }
+    
+    // Вычисляем знаменатель: √(Σ(xi - x̄)² * Σ(yi - ȳ)²)
+    let sumSqDiff1 = 0;
+    let sumSqDiff2 = 0;
+    for (let i = 0; i < values1.length; i++) {
+        sumSqDiff1 += Math.pow(values1[i] - mean1, 2);
+        sumSqDiff2 += Math.pow(values2[i] - mean2, 2);
+    }
+    
+    const denominator = Math.sqrt(sumSqDiff1 * sumSqDiff2);
+    
+    // Если знаменатель равен нулю, корреляция не определена
+    if (denominator === 0) return 0;
+    
+    return numerator / denominator;
+}
+
+// Нарисовать корреляции между парами игр
+function drawCorrelations() {
+    const container = document.getElementById('correlations-container');
+    if (!container) return;
+    
+    const results = gameState.results;
+    const gameNames = Object.keys(results);
+    
+    if (gameNames.length < 2) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    // Вычисляем корреляции для всех пар
+    const correlations = [];
+    for (let i = 0; i < gameNames.length; i++) {
+        for (let j = i + 1; j < gameNames.length; j++) {
+            const game1 = gameNames[i];
+            const game2 = gameNames[j];
+            const correlation = calculateCorrelation(results[game1], results[game2]);
+            correlations.push({
+                game1: game1,
+                game2: game2,
+                value: correlation
+            });
+        }
+    }
+    
+    // Форматируем HTML
+    let html = '<div class="correlations-box"><h3>Корреляции между играми</h3><div class="correlations-list">';
+    
+    correlations.forEach(corr => {
+        const percentage = (corr.value * 100).toFixed(1);
+        const colorClass = corr.value > 0.7 ? 'high' : corr.value > 0.3 ? 'medium' : corr.value > -0.3 ? 'low' : 'negative';
+        html += `
+            <div class="correlation-item ${colorClass}">
+                <span class="correlation-pair">${corr.game1} ↔ ${corr.game2}</span>
+                <span class="correlation-value">${percentage}%</span>
+            </div>
+        `;
+    });
+    
+    html += '</div></div>';
+    container.innerHTML = html;
 }
 
 // Нарисовать график результатов

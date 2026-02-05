@@ -221,6 +221,74 @@ h3 {
 }
 
 /* Экран результатов */
+.correlations-container {
+    margin: 20px 0 30px 0;
+}
+
+.correlations-box {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.correlations-box h3 {
+    color: #1f2937;
+    font-size: 18px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.correlations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.correlation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: white;
+    border-radius: 8px;
+    border: 2px solid #d1d5db;
+    transition: all 0.2s;
+}
+
+.correlation-item.high {
+    border-color: #10b981;
+    background: #d1fae5;
+}
+
+.correlation-item.medium {
+    border-color: #3b82f6;
+    background: #dbeafe;
+}
+
+.correlation-item.low {
+    border-color: #f59e0b;
+    background: #fef3c7;
+}
+
+.correlation-item.negative {
+    border-color: #ef4444;
+    background: #fee2e2;
+}
+
+.correlation-pair {
+    font-weight: 600;
+    color: #374151;
+    font-size: 16px;
+}
+
+.correlation-value {
+    font-weight: 700;
+    font-size: 18px;
+    color: #1f2937;
+}
+
 .chart-container {
     margin: 30px 0;
     text-align: center;
