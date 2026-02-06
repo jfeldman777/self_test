@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearHistoryBtn = document.getElementById('clear-history-btn');
     const historyHomeBtn = document.getElementById('history-home-btn');
     const resultsHomeBtn = document.getElementById('results-home-btn');
+    const resultsHistoryBtn = document.getElementById('results-history-btn');
 
     if (startBtn) startBtn.addEventListener('click', startSeries);
     if (nextWordBtn) nextWordBtn.addEventListener('click', nextWord);
@@ -138,6 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         showScreen('intro-screen');
         checkForSavedResults();
     });
+    if (resultsHistoryBtn) resultsHistoryBtn.addEventListener('click', showHistory);
 
     // Проверяем наличие сохраненных результатов
     checkForSavedResults();
@@ -730,9 +732,102 @@ function clearHistory() {
 // Показать результаты
 function showResults() {
     showScreen('results-screen');
+    drawRandomnessScore();
     drawCorrelations();
     drawResultsChart();
     drawResultsTable();
+}
+
+// Вычислить оценку случаности заполнения для текущих результатов
+// Использует ту же логику, что и в истории: считает количество желтых строк в истории
+function calculateRandomnessScore() {
+    const results = gameState.results;
+    const gameNames = Object.keys(results);
+    if (gameNames.length === 0) return { score: 0, total: 0 };
+    
+    // Получаем историю для вычисления статистики
+    const history = getHistory();
+    
+    // Собираем все векторы для каждой игры ТОЛЬКО из истории
+    // Используем ту же логику, что и renderStatistics - считаем желтые строки в истории
+    const gameVectors = {
+        'Мышление': [],
+        'Сознание': [],
+        'Взаимодействие': []
+    };
+    
+    // Добавляем результаты из истории
+    history.forEach(entry => {
+        if (entry.results) {
+            Object.keys(gameVectors).forEach(gameName => {
+                if (entry.results[gameName]) {
+                    gameVectors[gameName].push(entry.results[gameName]);
+                }
+            });
+        }
+    });
+    
+    // Если истории нет или она пуста, не можем определить случайность
+    const hasData = Object.values(gameVectors).some(vectors => vectors.length > 0);
+    if (!hasData) {
+        return { score: 0, total: 0 };
+    }
+    
+    const levels = ['1', '2', '3', '4', '5', '6', '7', '8'];
+    let totalRandomLevels = 0;
+    let totalLevels = 0;
+    
+    // Для каждой игры проверяем каждый уровень (как в renderStatistics)
+    Object.keys(gameVectors).forEach(gameName => {
+        const vectors = gameVectors[gameName];
+        if (vectors.length === 0) return;
+        
+        levels.forEach(level => {
+            // Собираем значения для этого уровня из всех векторов истории
+            const values = vectors
+                .map(vector => vector[level])
+                .filter(val => val !== undefined && val !== null)
+                .map(val => Number(val) || 0);
+            
+            if (values.length > 0) {
+                totalLevels++;
+                
+                // Вычисляем матожидание и стандартное отклонение (как в истории)
+                const mean = calculateMean(values);
+                const stdDev = calculateStdDev(values, mean);
+                
+                // Используем ту же логику, что и в истории: желтая строка если оба условия выполнены
+                const isRandomLike = Math.abs(mean) < 0.1 && stdDev > 0.3;
+                
+                if (isRandomLike) {
+                    totalRandomLevels++;
+                }
+            }
+        });
+    });
+    
+    return { score: totalRandomLevels, total: totalLevels };
+}
+
+// Нарисовать оценку случаности
+function drawRandomnessScore() {
+    const container = document.getElementById('correlations-container');
+    if (!container) return;
+    
+    const { score, total } = calculateRandomnessScore();
+    
+    if (total === 0) return;
+    
+    const scoreHtml = `
+        <div class="randomness-score-box">
+            <div class="randomness-score-label">Оценка случаности заполнения:</div>
+            <div class="randomness-score-value ${score > 0 ? 'has-randomness' : ''}">${score} из ${total}</div>
+            ${score > 0 ? '<div class="randomness-score-hint">(желтые строки в истории)</div>' : ''}
+        </div>
+    `;
+    
+    // Сохраняем HTML для вставки перед корреляциями
+    container.dataset.randomnessScore = scoreHtml;
 }
 
 // Вычислить корреляцию Пирсона между двумя векторами
@@ -777,11 +872,18 @@ function drawCorrelations() {
     const container = document.getElementById('correlations-container');
     if (!container) return;
     
+    // Сначала вставляем оценку случаности, если она есть
+    let html = '';
+    if (container.dataset.randomnessScore) {
+        html = container.dataset.randomnessScore;
+        delete container.dataset.randomnessScore;
+    }
+    
     const results = gameState.results;
     const gameNames = Object.keys(results);
     
     if (gameNames.length < 2) {
-        container.innerHTML = '';
+        container.innerHTML = html;
         return;
     }
     
@@ -800,8 +902,8 @@ function drawCorrelations() {
         }
     }
     
-    // Форматируем HTML
-    let html = '<div class="correlations-box"><h3>Корреляции между играми</h3><div class="correlations-list">';
+    // Форматируем HTML корреляций
+    html += '<div class="correlations-box"><h3>Корреляции между играми</h3><div class="correlations-list">';
     
     correlations.forEach(corr => {
         const percentage = (corr.value * 100).toFixed(1);
