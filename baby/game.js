@@ -36,7 +36,8 @@ let state = {
   clickedIds: new Set(),
   removedCardIds: new Set(),
   animFrame: null,
-  fallStartTime: 0
+  fallStartTime: 0,
+  wrongClickShown: false
 };
 
 function shuffle(arr) {
@@ -67,8 +68,7 @@ function renderBottomCards() {
   container.innerHTML = '';
   const activeCards = getActiveCards();
   const available = activeCards.filter(c => !state.removedCardIds.has(c.id));
-  if (available.length === 0) state.removedCardIds.clear();
-  state.bottomCards = shuffle(available.length > 0 ? available : [...activeCards]);
+  state.bottomCards = available.length > 0 ? shuffle(available) : [];
   state.bottomCards.forEach(card => {
     const el = document.createElement('button');
     el.className = 'bottom-card';
@@ -101,7 +101,7 @@ function hideFallingCard() {
 function onBottomCardClick(card, el) {
   if (!state.started || !state.falling || !state.fallingCard) return;
   if (card.group !== state.fallingCard.group) {
-    fail(); // нажата неправильно — завершить падение
+    wrongClick();
     return;
   }
   state.clickedIds.add(card.id);
@@ -119,6 +119,22 @@ function success() {
   updateScore();
   hideFallingCard();
   nextRound();
+}
+
+function wrongClick() {
+  if (!state.falling || state.wrongClickShown) return;
+  state.wrongClickShown = true;
+  cancelFall();
+  const area = document.getElementById(GAME_AREA_ID);
+  if (area) area.classList.add('game-area-error');
+  setTimeout(() => {
+    if (area) area.classList.remove('game-area-error');
+    state.wrongClickShown = false;
+    state.score -= 1;
+    updateScore();
+    hideFallingCard();
+    nextRound();
+  }, 1000);
 }
 
 function fail() {
@@ -159,9 +175,22 @@ function animateFall() {
   state.animFrame = requestAnimationFrame(tick);
 }
 
+function gameOver() {
+  cancelFall();
+  hideFallingCard();
+  state.started = false;
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-stop').disabled = true;
+  updateMaxDigitControl();
+}
+
 function nextRound() {
   if (!state.started) return;
   renderBottomCards();
+  if (state.bottomCards.length === 0) {
+    gameOver();
+    return;
+  }
   const card = state.bottomCards[Math.floor(Math.random() * state.bottomCards.length)];
   state.falling = true;
   showFallingCard(card);
@@ -185,6 +214,7 @@ function updateMaxDigitControl() {
 function start() {
   state.started = true;
   state.score = 0;
+  state.removedCardIds.clear();
   updateScore();
   document.getElementById('btn-start').disabled = true;
   document.getElementById('btn-stop').disabled = false;
