@@ -54,9 +54,39 @@ h1 {
 
 .falling-controls {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 15px;
   margin-bottom: 24px;
+}
+
+.max-digit-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.max-digit-control label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.max-digit-control input[type="range"] {
+  width: 80px;
+  accent-color: #2563eb;
+}
+
+.max-digit-control input[type="range"]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#max-digit-value {
+  font-weight: 700;
+  color: #2563eb;
+  min-width: 20px;
 }
 
 .start-btn {

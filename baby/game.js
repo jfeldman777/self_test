@@ -6,13 +6,21 @@
  * Успел = +1, не успел = -1.
  */
 
-// Карточки: img/1a.png, 1b.png, 2a.png (группа = первая цифра в имени)
+// Карточки: 1a, 1b, 2a, 2b, 3a, 3b, 4a, 4b, 5a, 5b (группа = первая цифра)
 const CARDS_DATA = [
   { id: '1a', img: 'img/1a.png', group: 1 },
   { id: '1b', img: 'img/1b.png', group: 1 },
   { id: '2a', img: 'img/2a.png', group: 2 },
-  { id: '2b', img: 'img/2b.png', group: 2 }
+  { id: '2b', img: 'img/2b.png', group: 2 },
+  { id: '3a', img: 'img/3a.png', group: 3 },
+  { id: '3b', img: 'img/3b.png', group: 3 },
+  { id: '4a', img: 'img/4a.png', group: 4 },
+  { id: '4b', img: 'img/4b.png', group: 4 },
+  { id: '5a', img: 'img/5a.png', group: 5 },
+  { id: '5b', img: 'img/5b.png', group: 5 }
 ];
+
+const MAX_DIGIT_ID = 'max-digit';
 
 const FALL_DURATION_MS = 6000;
 const GAME_AREA_ID = 'game-area';
@@ -40,16 +48,27 @@ function shuffle(arr) {
   return a;
 }
 
+function getMaxDigit() {
+  const el = document.getElementById(MAX_DIGIT_ID);
+  return el ? Math.min(5, Math.max(1, parseInt(el.value, 10) || 1)) : 1;
+}
+
+function getActiveCards() {
+  const max = getMaxDigit();
+  return CARDS_DATA.filter(c => c.group <= max);
+}
+
 function getCardsByGroup(group) {
-  return CARDS_DATA.filter(c => c.group === group);
+  return getActiveCards().filter(c => c.group === group);
 }
 
 function renderBottomCards() {
   const container = document.getElementById(BOTTOM_CARDS_ID);
   container.innerHTML = '';
-  const available = CARDS_DATA.filter(c => !state.removedCardIds.has(c.id));
+  const activeCards = getActiveCards();
+  const available = activeCards.filter(c => !state.removedCardIds.has(c.id));
   if (available.length === 0) state.removedCardIds.clear();
-  state.bottomCards = shuffle(available.length > 0 ? available : [...CARDS_DATA]);
+  state.bottomCards = shuffle(available.length > 0 ? available : [...activeCards]);
   state.bottomCards.forEach(card => {
     const el = document.createElement('button');
     el.className = 'bottom-card';
@@ -154,12 +173,22 @@ function updateScore() {
   if (el) el.textContent = state.score;
 }
 
+function updateMaxDigitControl() {
+  const slider = document.getElementById(MAX_DIGIT_ID);
+  const valueEl = document.getElementById('max-digit-value');
+  if (slider && valueEl) {
+    valueEl.textContent = slider.value;
+    slider.disabled = state.started;
+  }
+}
+
 function start() {
   state.started = true;
   state.score = 0;
   updateScore();
   document.getElementById('btn-start').disabled = true;
   document.getElementById('btn-stop').disabled = false;
+  updateMaxDigitControl();
   nextRound();
 }
 
@@ -168,6 +197,7 @@ function stop() {
   hideFallingCard();
   document.getElementById('btn-start').disabled = false;
   document.getElementById('btn-stop').disabled = true;
+  updateMaxDigitControl();
 }
 
 function reset() {
@@ -183,11 +213,17 @@ function reset() {
   document.getElementById('btn-start').disabled = false;
   document.getElementById('btn-stop').disabled = true;
   document.getElementById(BOTTOM_CARDS_ID).innerHTML = '';
+  updateMaxDigitControl();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-start').addEventListener('click', start);
   document.getElementById('btn-stop').addEventListener('click', stop);
   document.getElementById('btn-reset').addEventListener('click', reset);
+  const maxDigitEl = document.getElementById(MAX_DIGIT_ID);
+  if (maxDigitEl) {
+    maxDigitEl.addEventListener('input', updateMaxDigitControl);
+  }
   updateScore();
+  updateMaxDigitControl();
 });
