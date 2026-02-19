@@ -1,0 +1,115 @@
+/* Игра "Падающие карточки" */
+
+.game-description {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.falling-score {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.score-label {
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.score-value {
+  color: #2563eb;
+  min-width: 40px;
+  display: inline-block;
+}
+
+.falling-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 24px;
+}
+
+.falling-game-area {
+  position: relative;
+  min-height: 400px;
+  background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+  border-radius: 12px;
+  border: 2px solid #0ea5e9;
+  overflow: hidden;
+}
+
+.falling-card {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 16px 28px;
+  background: white;
+  border: 2px solid #2563eb;
+  border-radius: 10px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e40af;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: top 0.05s linear;
+}
+
+.bottom-cards {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: #f8fafc;
+  border-top: 2px solid #e2e8f0;
+}
+
+.bottom-card {
+  padding: 14px 24px;
+  background: white;
+  border: 2px solid #94a3b8;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bottom-card:hover {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+.bottom-card:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .falling-game-area {
+    min-height: 350px;
+  }
+
+  .falling-card {
+    font-size: 18px;
+    padding: 12px 20px;
+  }
+
+  .bottom-card {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+}

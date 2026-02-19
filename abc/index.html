@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кривая разогрева — управляемая анимация</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Кривая разогрева</h1>
+        
+        <div class="animation-wrapper">
+            <div class="graph-container">
+                <img id="base-image" src="img/1111.png" alt="Кривая разогрева" class="base-image">
+                <canvas id="animation-canvas" class="animation-canvas"></canvas>
+            </div>
+            <div id="bathtub-section">
+                <div class="area-display" id="area-display">
+                    <span>Трапеция: <strong id="area-trapezoid">—</strong></span>
+                    <span>Ванна: <strong id="area-bathtub">—</strong></span>
+                    <span>Сумма: <strong id="area-sum">—</strong></span>
+                </div>
+                <div class="bathtub-label">Ванна — наполняется снизу; площадь синего = константа</div>
+                <div id="reservoir" class="reservoir">
+                <div id="reservoir-fill" class="reservoir-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="btn-start" class="btn btn-start">СТАРТ</button>
+            <button id="btn-next" class="btn btn-next" disabled>Дальше</button>
+            <button id="btn-reset" class="btn btn-reset">С НАЧАЛА</button>
+        </div>
+    </div>
+
+    <script src="animation.js"></script>
+</body>
+</html>

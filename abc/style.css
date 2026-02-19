@@ -1,0 +1,150 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #1e40af;
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 24px;
+}
+
+.animation-wrapper {
+    margin-bottom: 24px;
+}
+
+.graph-container {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+}
+
+.base-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.animation-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.area-display {
+    margin-top: 12px;
+    font-size: 14px;
+    color: #334155;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.area-display strong {
+    font-family: "Consolas", "Monaco", monospace;
+    color: #1e40af;
+}
+
+.bathtub-label {
+    margin-top: 16px;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Ванна — плоская трапеция, широким основанием вверх; без сжатия верхней поверхности */
+.reservoir {
+    margin-top: 24px;
+    height: 80px;
+    background: #e2e8f0;
+    border: 2px solid #94a3b8;
+    overflow: hidden;
+    position: relative;
+    clip-path: polygon(5% 100%, 95% 100%, 100% 0%, 0% 0%);
+}
+
+.reservoir-fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0%;
+    background: rgba(59, 130, 246, 0.55);
+    /* clip-path только у reservoir — fill обрезается родителем */
+}
+
+.controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-start {
+    background: #22c55e;
+    color: white;
+}
+
+.btn-start:hover:not(:disabled) {
+    background: #16a34a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.btn-next {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-next:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.btn-reset {
+    background: #6b7280;
+    color: white;
+}
+
+.btn-reset:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+}

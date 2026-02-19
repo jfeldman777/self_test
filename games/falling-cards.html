@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Падающие карточки</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="falling-cards.css">
+    <script src="falling-cards.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Падающие карточки</h1>
+        <p class="game-description">Карточка падает сверху. Успей нажать на неё и все эквиваленты внизу до того, как она упадёт!</p>
+        
+        <div class="falling-score">
+            <span class="score-label">Сумма:</span>
+            <span id="score" class="score-value">0</span>
+        </div>
+
+        <div class="falling-controls">
+            <button id="btn-start" class="start-btn">СТАРТ</button>
+            <button id="btn-reset" class="restart-btn">СБРОС</button>
+        </div>
+
+        <div id="game-area" class="falling-game-area">
+            <div id="falling-card" class="falling-card" style="display: none;"></div>
+            <div id="bottom-cards" class="bottom-cards"></div>
+        </div>
+
+        <div class="nav-section">
+            <a href="index.html" class="link-btn">К играм</a>
+            <a href="../1.html" class="link-btn">1</a>
+        </div>
+    </div>
+</body>
+</html>
