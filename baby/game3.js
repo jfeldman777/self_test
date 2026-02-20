@@ -1,7 +1,6 @@
 /**
- * Игра "Сложение"
- * Карточка + карточка = ? — кликнуть правильный ответ внизу.
- * Режим ТОЧКИ (1b, 2b...), потом режим ЦИФРЫ (1a, 2a...).
+ * Игра "Вычитание"
+ * Карточка − карточка = ? — кликнуть правильный ответ внизу.
  */
 
 const CARDS_DATA = [
@@ -124,10 +123,10 @@ function generateTask() {
   do {
     a = 1 + Math.floor(Math.random() * max);
     b = 1 + Math.floor(Math.random() * max);
-  } while (a + b > max);
+  } while (a <= b);
   state.a = a;
   state.b = b;
-  state.answer = state.a + state.b;
+  state.answer = state.a - state.b;
   const maxAns = max;
   const wrongOptions = [];
   for (let i = 1; i <= maxAns; i++) {

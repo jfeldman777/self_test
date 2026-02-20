@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сложение</title>
+    <title>Вычитание</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style2.css">
     <script src="lang.js"></script>
-    <script src="game2.js" defer></script>
+    <script src="game3.js" defer></script>
 </head>
 <body>
     <div id="screen-instructions" class="screen screen-active">
@@ -20,11 +20,11 @@
                     <option value="et">Eesti</option>
                 </select>
             </div>
-            <h1 data-i18n="addTitle">Сложение</h1>
+            <h1 data-i18n="subTitle">Вычитание</h1>
             <div class="instructions">
                 <h2 data-i18n="fallingInstr">Инструкция</h2>
                 <ul>
-                    <li data-i18n="addInstr1">Показано равенство: карточка + карточка = ?</li>
+                    <li data-i18n="subInstr1">Показано равенство: карточка − карточка = ?</li>
                     <li data-i18n="addInstr2">Нужно кликнуть одну из карточек внизу, чтобы получилось верное равенство.</li>
                     <li data-i18n="addInstr3">Правильный ответ появляется после знака «=».</li>
                     <li data-i18n="addInstr4"><strong>Режим ТОЧКИ:</strong> карточки-точки (визуальное представление).</li>
@@ -50,7 +50,7 @@
             <button id="btn-play" class="start-btn" data-i18n="play">ИГРАТЬ</button>
             <div class="nav-section">
                 <a href="index.html" class="link-btn" data-i18n="navFalling">Падающие карточки</a>
-                <a href="index3.html" class="link-btn" data-i18n="navSub">Вычитание</a>
+                <a href="index2.html" class="link-btn" data-i18n="navAdd">Сложение</a>
                 <a href="../1.html" class="link-btn">1</a>
             </div>
         </div>
@@ -58,9 +58,9 @@
 
     <div id="screen-game" class="screen">
         <div id="game-container" class="container">
-            <h1 data-i18n="addTitle">Сложение</h1>
+            <h1 data-i18n="subTitle">Вычитание</h1>
             <div class="add-score">
-                <span class="score-label" data-i18n="score">Сумма</span><span>:</span>
+                <span class="score-label" data-i18n="score">Счёт</span><span>:</span>
                 <span id="score" class="score-value">0</span>
                 <span class="score-sep">|</span>
                 <span class="score-label" data-i18n="modeLabel">Режим</span><span>:</span>
@@ -75,7 +75,7 @@
             <div id="equation-area" class="equation-area">
                 <div class="equation-row">
                     <div id="card1" class="eq-card"></div>
-                    <span class="eq-op">+</span>
+                    <span class="eq-op">−</span>
                     <div id="card2" class="eq-card"></div>
                     <span class="eq-op">=</span>
                     <div id="card-answer" class="eq-card eq-answer"></div>
@@ -92,7 +92,7 @@
         sel.addEventListener('change', function() {
           window.Lang.set(sel.value);
           window.Lang.apply();
-          document.documentElement.lang = sel.value === 'ru' ? 'ru' : 'en';
+          document.documentElement.lang = sel.value;
           window.dispatchEvent(new CustomEvent('langchange'));
         });
       }

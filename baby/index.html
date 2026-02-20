@@ -5,62 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Падающие карточки</title>
     <link rel="stylesheet" href="style.css">
+    <script src="lang.js"></script>
     <script src="game.js" defer></script>
 </head>
 <body>
     <div id="screen-instructions" class="screen screen-active">
         <div class="container">
-            <h1>Падающие карточки</h1>
+            <div class="lang-selector">
+                <span data-i18n="lang">Язык</span>
+                <select id="lang-select">
+                    <option value="ru">Русский</option>
+                    <option value="en">English</option>
+                    <option value="et">Eesti</option>
+                </select>
+            </div>
+            <h1 data-i18n="fallingTitle">Падающие карточки</h1>
             <div class="instructions">
-                <h2>Инструкция</h2>
+                <h2 data-i18n="fallingInstr">Инструкция</h2>
                 <ul>
-                    <li>Карточка падает сверху вниз.</li>
-                    <li>Успей нажать на неё или на её эквивалент внизу до того, как она упадёт.</li>
-                    <li>Правильно нажатая карточка исчезает и не появляется до рестарта.</li>
-                    <li>Неправильное нажатие — минус 1, фон краснеет на секунду.</li>
-                    <li>Игра идёт по уровням: сначала цифра 1, потом 2, и так до максимума (1–9).</li>
-                    <li>Когда все карточки исчезли на последнем уровне — экран мигает жёлтым, игра останавливается.</li>
-                    <li><strong>А1:</strong> точки падают и лежат → цифры падают и лежат → новый максимум.</li>
-                    <li><strong>А2:</strong> точки падают и лежат → цифры падают и лежат → цифры падают, точки лежат → точки падают, цифры лежат → новый максимум.</li>
+                    <li data-i18n="fallingInstr1">Карточка падает сверху вниз.</li>
+                    <li data-i18n="fallingInstr2">Успей нажать на неё или на её эквивалент внизу до того, как она упадёт.</li>
+                    <li data-i18n="fallingInstr3">Правильно нажатая карточка исчезает и не появляется до рестарта.</li>
+                    <li data-i18n="fallingInstr4">Неправильное нажатие — минус 1, фон краснеет на секунду.</li>
+                    <li data-i18n="fallingInstr5">Игра идёт по уровням: сначала цифра 1, потом 2, и так до максимума (1–9).</li>
+                    <li data-i18n="fallingInstr6">Когда все карточки исчезли на последнем уровне — экран мигает жёлтым, игра останавливается.</li>
+                    <li data-i18n="fallingInstr7"><strong>А1:</strong> точки падают и лежат → цифры падают и лежат → новый максимум.</li>
+                    <li data-i18n="fallingInstr8"><strong>А2:</strong> точки падают и лежат → цифры падают и лежат → цифры падают, точки лежат → точки падают, цифры лежат → новый максимум.</li>
                 </ul>
             </div>
             <div class="settings">
                 <div class="setting-group">
-                    <div class="setting-label">Режим:</div>
+                    <div class="setting-label" data-i18n="mode">Режим</div>
                     <div class="radio-group">
-                        <label><input type="radio" name="game-mode" value="manual" checked> Обычный</label>
-                        <label><input type="radio" name="game-mode" value="A1"> А1</label>
-                        <label><input type="radio" name="game-mode" value="A2"> А2</label>
+                        <label><input type="radio" name="game-mode" value="manual" checked> <span data-i18n="modeNormal">Обычный</span></label>
+                        <label><input type="radio" name="game-mode" value="A1"> <span data-i18n="modeA1">А1</span></label>
+                        <label><input type="radio" name="game-mode" value="A2"> <span data-i18n="modeA2">А2</span></label>
                     </div>
                 </div>
                 <div class="setting-group mode-manual-only">
-                    <div class="setting-label">Что падает:</div>
+                    <div class="setting-label" data-i18n="whatFalls">Что падает</div>
                     <div class="radio-group">
-                        <label><input type="radio" name="fall-type" value="digit" checked> Цифра</label>
-                        <label><input type="radio" name="fall-type" value="point"> Точка</label>
+                        <label><input type="radio" name="fall-type" value="digit" checked> <span data-i18n="digit">Цифра</span></label>
+                        <label><input type="radio" name="fall-type" value="point"> <span data-i18n="point">Точка</span></label>
                     </div>
                 </div>
                 <div class="setting-group mode-manual-only">
-                    <div class="setting-label">Что лежит внизу:</div>
+                    <div class="setting-label" data-i18n="whatLies">Что лежит внизу</div>
                     <div class="checkbox-group">
-                        <label><input type="checkbox" id="chk-digits" checked> Цифры</label>
-                        <label><input type="checkbox" id="chk-points" checked> Точки</label>
+                        <label><input type="checkbox" id="chk-digits" checked> <span data-i18n="digits">Цифры</span></label>
+                        <label><input type="checkbox" id="chk-points" checked> <span data-i18n="points">Точки</span></label>
                     </div>
                 </div>
                 <div class="setting-row">
-                    <label for="speed">Скорость падения:</label>
+                    <label for="speed" data-i18n="speed">Скорость падения</label>
                     <input type="range" id="speed" min="1" max="5" value="3">
                     <span id="speed-value">3</span>
                 </div>
                 <div class="setting-row">
-                    <label for="max-digit">Максимум цифра:</label>
+                    <label for="max-digit" data-i18n="maxDigit">Максимум цифра</label>
                     <input type="range" id="max-digit" min="1" max="9" value="2">
                     <span id="max-digit-value">2</span>
                 </div>
             </div>
-            <button id="btn-play" class="start-btn">ИГРАТЬ</button>
+            <button id="btn-play" class="start-btn" data-i18n="play">ИГРАТЬ</button>
             <div class="nav-section">
-                <a href="index2.html" class="link-btn">Сложение</a>
+                <a href="index2.html" class="link-btn" data-i18n="navAdd">Сложение</a>
+                <a href="index3.html" class="link-btn" data-i18n="navSub">Вычитание</a>
                 <a href="../1.html" class="link-btn">1</a>
             </div>
         </div>
@@ -68,19 +78,19 @@
 
     <div id="screen-game" class="screen">
         <div id="game-container" class="container">
-            <h1>Падающие карточки</h1>
+            <h1 data-i18n="fallingTitle">Падающие карточки</h1>
             <div class="falling-score">
-                <span class="score-label">Сумма:</span>
+                <span class="score-label" data-i18n="score">Сумма</span><span>:</span>
                 <span id="score" class="score-value">0</span>
                 <span class="score-sep">|</span>
-                <span class="score-label">Уровень:</span>
+                <span class="score-label" data-i18n="level">Уровень</span><span>:</span>
                 <span id="current-level" class="score-value">1</span>
             </div>
             <div class="falling-controls">
-                <button id="btn-start" class="start-btn">СТАРТ</button>
-                <button id="btn-stop" class="stop-btn" disabled>СТОП</button>
-                <button id="btn-reset" class="restart-btn">СБРОС</button>
-                <button id="btn-back" class="stop-btn">НАЗАД</button>
+                <button id="btn-start" class="start-btn" data-i18n="start">СТАРТ</button>
+                <button id="btn-stop" class="stop-btn" disabled data-i18n="stop">СТОП</button>
+                <button id="btn-reset" class="restart-btn" data-i18n="reset">СБРОС</button>
+                <button id="btn-back" class="stop-btn" data-i18n="back">НАЗАД</button>
             </div>
             <div id="game-area" class="falling-game-area">
                 <div id="falling-card" class="falling-card" style="display: none;"></div>
@@ -88,5 +98,21 @@
             </div>
         </div>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var sel = document.getElementById('lang-select');
+      if (sel) {
+        sel.value = window.Lang.get();
+        sel.addEventListener('change', function() {
+          window.Lang.set(sel.value);
+          window.Lang.apply();
+          document.documentElement.lang = sel.value;
+          window.dispatchEvent(new CustomEvent('langchange'));
+        });
+      }
+      window.Lang.apply();
+      document.documentElement.lang = window.Lang.get() || 'ru';
+    });
+    </script>
 </body>
 </html>
