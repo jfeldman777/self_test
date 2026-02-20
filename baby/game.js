@@ -6,26 +6,35 @@
  * Успел = +1, не успел = -1.
  */
 
-// Карточки: 1a..9b (группа = первая цифра)
+// Карточки: 1a..9c (a=цифры, b=точки, c=звери)
 const CARDS_DATA = [
   { id: '1a', img: 'img/1a.png', group: 1 },
   { id: '1b', img: 'img/1b.png', group: 1 },
+  { id: '1c', img: 'img/1c.png', group: 1 },
   { id: '2a', img: 'img/2a.png', group: 2 },
   { id: '2b', img: 'img/2b.png', group: 2 },
+  { id: '2c', img: 'img/2c.png', group: 2 },
   { id: '3a', img: 'img/3a.png', group: 3 },
   { id: '3b', img: 'img/3b.png', group: 3 },
+  { id: '3c', img: 'img/3c.png', group: 3 },
   { id: '4a', img: 'img/4a.png', group: 4 },
   { id: '4b', img: 'img/4b.png', group: 4 },
+  { id: '4c', img: 'img/4c.png', group: 4 },
   { id: '5a', img: 'img/5a.png', group: 5 },
   { id: '5b', img: 'img/5b.png', group: 5 },
+  { id: '5c', img: 'img/5c.png', group: 5 },
   { id: '6a', img: 'img/6a.png', group: 6 },
   { id: '6b', img: 'img/6b.png', group: 6 },
+  { id: '6c', img: 'img/6c.png', group: 6 },
   { id: '7a', img: 'img/7a.png', group: 7 },
   { id: '7b', img: 'img/7b.png', group: 7 },
+  { id: '7c', img: 'img/7c.png', group: 7 },
   { id: '8a', img: 'img/8a.png', group: 8 },
   { id: '8b', img: 'img/8b.png', group: 8 },
+  { id: '8c', img: 'img/8c.png', group: 8 },
   { id: '9a', img: 'img/9a.png', group: 9 },
-  { id: '9b', img: 'img/9b.png', group: 9 }
+  { id: '9b', img: 'img/9b.png', group: 9 },
+  { id: '9c', img: 'img/9c.png', group: 9 }
 ];
 
 const MAX_DIGIT_ID = 'max-digit';
@@ -83,6 +92,10 @@ function isPointCard(card) {
   return card.id.endsWith('b');
 }
 
+function isAnimalCard(card) {
+  return card.id.endsWith('c');
+}
+
 function getGameMode() {
   const el = document.querySelector('input[name="game-mode"]:checked');
   return el?.value || 'manual';
@@ -90,30 +103,25 @@ function getGameMode() {
 
 function getFallType() {
   const mode = state.autoMode;
-  if (mode === 'A1') {
-    return state.autoPhase === 0 ? 'point' : 'digit';
-  }
-  if (mode === 'A2') {
-    return (state.autoPhase === 0 || state.autoPhase === 3) ? 'point' : 'digit';
+  if (mode === 'hard') {
+    const types = ['digit', 'point', 'animal'];
+    return types[Math.floor(Math.random() * 3)];
   }
   const el = document.querySelector('input[name="fall-type"]:checked');
-  return el?.value === 'point' ? 'point' : 'digit';
+  const v = el?.value || 'digit';
+  return v === 'point' ? 'point' : (v === 'animal' ? 'animal' : 'digit');
 }
 
 function getBottomTypes() {
   const mode = state.autoMode;
-  if (mode === 'A1') {
-    return state.autoPhase === 0 ? { digits: false, points: true } : { digits: true, points: false };
-  }
-  if (mode === 'A2') {
-    if (state.autoPhase === 0) return { digits: false, points: true };
-    if (state.autoPhase === 1) return { digits: true, points: false };
-    if (state.autoPhase === 2) return { digits: false, points: true };
-    return { digits: true, points: false };
+  if (mode === 'hard') {
+    return { digits: true, points: true, animals: true };
   }
   const digits = document.getElementById('chk-digits')?.checked ?? true;
   const points = document.getElementById('chk-points')?.checked ?? true;
-  return { digits: digits || !points, points: points || !digits };
+  const animals = document.getElementById('chk-animals')?.checked ?? false;
+  const any = digits || points || animals;
+  return { digits: digits || !any, points: points || !any, animals: animals || !any };
 }
 
 function getActiveCards() {
@@ -122,14 +130,14 @@ function getActiveCards() {
 
 function getBottomCards() {
   const active = getActiveCards();
-  const { digits, points } = getBottomTypes();
-  return active.filter(c => (digits && isDigitCard(c)) || (points && isPointCard(c)));
+  const { digits, points, animals } = getBottomTypes();
+  return active.filter(c => (digits && isDigitCard(c)) || (points && isPointCard(c)) || (animals && isAnimalCard(c)));
 }
 
 function getFallingCards() {
   const active = getActiveCards();
   const fallType = getFallType();
-  return active.filter(c => fallType === 'digit' ? isDigitCard(c) : isPointCard(c));
+  return active.filter(c => fallType === 'digit' ? isDigitCard(c) : fallType === 'point' ? isPointCard(c) : isAnimalCard(c));
 }
 
 function getCardsByGroup(group) {
@@ -273,26 +281,6 @@ function nextRound() {
   renderBottomCards();
   if (state.bottomCards.length === 0) {
     const maxDigit = getMaxDigit();
-    const mode = state.autoMode;
-    if (mode === 'A1') {
-      if (state.autoPhase === 0) {
-        state.autoPhase = 1;
-        state.removedCardIds.clear();
-        state.usedFallingIds.clear();
-        setTimeout(nextRound, 0);
-        return;
-      }
-      state.autoPhase = 0;
-    } else if (mode === 'A2') {
-      if (state.autoPhase < 3) {
-        state.autoPhase++;
-        state.removedCardIds.clear();
-        state.usedFallingIds.clear();
-        setTimeout(nextRound, 0);
-        return;
-      }
-      state.autoPhase = 0;
-    }
     if (state.currentLevel < maxDigit) {
       state.currentLevel++;
       state.removedCardIds.clear();

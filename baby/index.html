@@ -29,8 +29,7 @@
                     <li data-i18n="fallingInstr4">Неправильное нажатие — минус 1, фон краснеет на секунду.</li>
                     <li data-i18n="fallingInstr5">Игра идёт по уровням: сначала цифра 1, потом 2, и так до максимума (1–9).</li>
                     <li data-i18n="fallingInstr6">Когда все карточки исчезли на последнем уровне — экран мигает жёлтым, игра останавливается.</li>
-                    <li data-i18n="fallingInstr7"><strong>А1:</strong> точки падают и лежат → цифры падают и лежат → новый максимум.</li>
-                    <li data-i18n="fallingInstr8"><strong>А2:</strong> точки падают и лежат → цифры падают и лежат → цифры падают, точки лежат → точки падают, цифры лежат → новый максимум.</li>
+                    <li data-i18n="fallingInstr9"><strong>Трудный:</strong> цифры, точки и звери смешаны в случайном порядке.</li>
                 </ul>
             </div>
             <div class="settings">
@@ -38,8 +37,7 @@
                     <div class="setting-label" data-i18n="mode">Режим</div>
                     <div class="radio-group">
                         <label><input type="radio" name="game-mode" value="manual" checked> <span data-i18n="modeNormal">Обычный</span></label>
-                        <label><input type="radio" name="game-mode" value="A1"> <span data-i18n="modeA1">А1</span></label>
-                        <label><input type="radio" name="game-mode" value="A2"> <span data-i18n="modeA2">А2</span></label>
+                        <label><input type="radio" name="game-mode" value="hard"> <span data-i18n="hard">Трудный</span></label>
                     </div>
                 </div>
                 <div class="setting-group mode-manual-only">
@@ -47,6 +45,7 @@
                     <div class="radio-group">
                         <label><input type="radio" name="fall-type" value="digit" checked> <span data-i18n="digit">Цифра</span></label>
                         <label><input type="radio" name="fall-type" value="point"> <span data-i18n="point">Точка</span></label>
+                        <label><input type="radio" name="fall-type" value="animal"> <span data-i18n="animals">Звери</span></label>
                     </div>
                 </div>
                 <div class="setting-group mode-manual-only">
@@ -54,6 +53,7 @@
                     <div class="checkbox-group">
                         <label><input type="checkbox" id="chk-digits" checked> <span data-i18n="digits">Цифры</span></label>
                         <label><input type="checkbox" id="chk-points" checked> <span data-i18n="points">Точки</span></label>
+                        <label><input type="checkbox" id="chk-animals"> <span data-i18n="animals">Звери</span></label>
                     </div>
                 </div>
                 <div class="setting-row">
