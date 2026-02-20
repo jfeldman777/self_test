@@ -22,6 +22,9 @@ let state = {
   phaseIndex: 0,
   phaseCorrectCount: 0,
   enabledModes: [0],
+  isHardMode: false,
+  phaseConfig: { card1Points: true, card2Points: true, answerPoints: true, answerMixed: false },
+  bottomCardStyles: [],
   started: false,
   stopped: false,
   a: 0,
@@ -32,18 +35,28 @@ let state = {
 
 const TASKS_PER_PHASE = 5;
 
+const HARD_PHASE_NAMES = [
+  'Цифры→Точки',
+  'Точки→Цифры',
+  'Смешанный, ответ точки',
+  'Смешанный, ответ цифры',
+  'Смешанный, внизу цифры и точки'
+];
+
 function getMaxDigit() {
   const el = document.getElementById('max-digit');
   return el ? Math.min(5, Math.max(1, parseInt(el.value, 10) || 3)) : 3;
 }
 
 function getEnabledModes() {
+  const hard = document.getElementById('mode-hard')?.checked ?? false;
+  if (hard) return { isHard: true, phases: [0, 1, 2, 3, 4] };
   const points = document.getElementById('mode-points')?.checked ?? true;
   const digits = document.getElementById('mode-digits')?.checked ?? false;
   const modes = [];
   if (points) modes.push(0);
   if (digits) modes.push(1);
-  return modes.length ? modes : [0];
+  return { isHard: false, phases: modes.length ? modes : [0] };
 }
 
 function getCardId(num, usePoints) {
@@ -65,13 +78,54 @@ function shuffle(arr) {
   return a;
 }
 
-function getCurrentPhase() {
-  return state.enabledModes[state.phaseIndex] ?? 0;
+function getCurrentPhaseIndex() {
+  return state.enabledModes.phases[state.phaseIndex] ?? 0;
+}
+
+function applyPhaseConfig() {
+  const phase = getCurrentPhaseIndex();
+  if (!state.isHardMode) {
+    const usePoints = phase === 0;
+    state.phaseConfig = { card1Points: usePoints, card2Points: usePoints, answerPoints: usePoints, answerMixed: false };
+    return;
+  }
+  switch (phase) {
+    case 0:
+      state.phaseConfig = { card1Points: false, card2Points: false, answerPoints: true, answerMixed: false };
+      break;
+    case 1:
+      state.phaseConfig = { card1Points: true, card2Points: true, answerPoints: false, answerMixed: false };
+      break;
+    case 2:
+    case 3: {
+      const firstPoints = Math.random() < 0.5;
+      state.phaseConfig = {
+        card1Points: firstPoints,
+        card2Points: !firstPoints,
+        answerPoints: phase === 2,
+        answerMixed: false
+      };
+      break;
+    }
+    case 4: {
+      const firstPoints = Math.random() < 0.5;
+      state.phaseConfig = {
+        card1Points: firstPoints,
+        card2Points: !firstPoints,
+        answerPoints: false,
+        answerMixed: true
+      };
+      break;
+    }
+    default:
+      state.phaseConfig = { card1Points: true, card2Points: true, answerPoints: true, answerMixed: false };
+  }
 }
 
 function generateTask() {
   const max = getMaxDigit();
-  const usePoints = getCurrentPhase() === 0;
+  applyPhaseConfig();
+  const cfg = state.phaseConfig;
   let a, b;
   do {
     a = 1 + Math.floor(Math.random() * max);
@@ -83,7 +137,7 @@ function generateTask() {
   const maxAns = max;
   const wrongOptions = [];
   for (let i = 1; i <= maxAns; i++) {
-    if (i !== state.answer && getCard(i, usePoints)) wrongOptions.push(i);
+    if (i !== state.answer && getCard(i, cfg.answerPoints)) wrongOptions.push(i);
   }
   const pickWrong = Math.min(3, wrongOptions.length);
   const shuffled = shuffle(wrongOptions);
@@ -95,9 +149,9 @@ function generateTask() {
 }
 
 function showEquation() {
-  const usePoints = getCurrentPhase() === 0;
-  const card1 = getCard(state.a, usePoints);
-  const card2 = getCard(state.b, usePoints);
+  const cfg = state.phaseConfig;
+  const card1 = getCard(state.a, cfg.card1Points);
+  const card2 = getCard(state.b, cfg.card2Points);
   document.getElementById('card1').innerHTML = card1 ? `<img src="${card1.img}" alt="${state.a}">` : '';
   document.getElementById('card2').innerHTML = card2 ? `<img src="${card2.img}" alt="${state.b}">` : '';
   document.getElementById('card-answer').innerHTML = '';
@@ -105,7 +159,12 @@ function showEquation() {
 }
 
 function showAnswer() {
-  const usePoints = getCurrentPhase() === 0;
+  const cfg = state.phaseConfig;
+  let usePoints = cfg.answerPoints;
+  if (cfg.answerMixed && state.bottomCardStyles.length) {
+    const idx = state.answerOptions.indexOf(state.answer);
+    if (idx >= 0) usePoints = state.bottomCardStyles[idx];
+  }
   const card = getCard(state.answer, usePoints);
   document.getElementById('card-answer').innerHTML = card ? `<img src="${card.img}" alt="${state.answer}">` : '';
 }
@@ -113,8 +172,11 @@ function showAnswer() {
 function renderBottomCards() {
   const container = document.getElementById('bottom-cards');
   container.innerHTML = '';
-  const usePoints = getCurrentPhase() === 0;
+  const cfg = state.phaseConfig;
+  state.bottomCardStyles = [];
   state.answerOptions.forEach(val => {
+    const usePoints = cfg.answerMixed ? Math.random() < 0.5 : cfg.answerPoints;
+    state.bottomCardStyles.push(usePoints);
     const card = getCard(val, usePoints);
     if (!card) return;
     const el = document.createElement('button');
@@ -150,7 +212,7 @@ function onAnswerClick(val, el) {
 function nextTask() {
   if (!state.started || state.stopped) return;
   if (state.phaseCorrectCount >= TASKS_PER_PHASE) {
-    if (state.phaseIndex + 1 < state.enabledModes.length) {
+    if (state.phaseIndex + 1 < state.enabledModes.phases.length) {
       state.phaseIndex += 1;
       state.phaseCorrectCount = 0;
       updateModeLabel();
@@ -171,8 +233,13 @@ function updateScore() {
 
 function updateModeLabel() {
   const el = document.getElementById('mode-label');
-  const phase = getCurrentPhase();
-  if (el) el.textContent = phase === 0 ? 'Точки' : 'Цифры';
+  if (!el) return;
+  if (state.isHardMode) {
+    el.textContent = HARD_PHASE_NAMES[getCurrentPhaseIndex()] || 'Трудный';
+  } else {
+    const phase = getCurrentPhaseIndex();
+    el.textContent = phase === 0 ? 'Точки' : 'Цифры';
+  }
 }
 
 function start() {
@@ -180,7 +247,9 @@ function start() {
   state.started = true;
   state.stopped = false;
   state.score = 0;
-  state.enabledModes = getEnabledModes();
+  const modes = getEnabledModes();
+  state.enabledModes = modes;
+  state.isHardMode = modes.isHard ?? false;
   state.phaseIndex = 0;
   state.phaseCorrectCount = 0;
   updateScore();
