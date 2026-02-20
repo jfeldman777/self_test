@@ -40,6 +40,8 @@ const BOTTOM_CARDS_ID = 'bottom-cards';
 let state = {
   score: 0,
   currentLevel: 1,
+  autoMode: 'manual',
+  autoPhase: 0,
   started: false,
   falling: false,
   fallingCard: null,
@@ -81,12 +83,34 @@ function isPointCard(card) {
   return card.id.endsWith('b');
 }
 
+function getGameMode() {
+  const el = document.querySelector('input[name="game-mode"]:checked');
+  return el?.value || 'manual';
+}
+
 function getFallType() {
+  const mode = state.autoMode;
+  if (mode === 'A1') {
+    return state.autoPhase === 0 ? 'point' : 'digit';
+  }
+  if (mode === 'A2') {
+    return (state.autoPhase === 0 || state.autoPhase === 3) ? 'point' : 'digit';
+  }
   const el = document.querySelector('input[name="fall-type"]:checked');
   return el?.value === 'point' ? 'point' : 'digit';
 }
 
 function getBottomTypes() {
+  const mode = state.autoMode;
+  if (mode === 'A1') {
+    return state.autoPhase === 0 ? { digits: false, points: true } : { digits: true, points: false };
+  }
+  if (mode === 'A2') {
+    if (state.autoPhase === 0) return { digits: false, points: true };
+    if (state.autoPhase === 1) return { digits: true, points: false };
+    if (state.autoPhase === 2) return { digits: false, points: true };
+    return { digits: true, points: false };
+  }
   const digits = document.getElementById('chk-digits')?.checked ?? true;
   const points = document.getElementById('chk-points')?.checked ?? true;
   return { digits: digits || !points, points: points || !digits };
@@ -249,6 +273,26 @@ function nextRound() {
   renderBottomCards();
   if (state.bottomCards.length === 0) {
     const maxDigit = getMaxDigit();
+    const mode = state.autoMode;
+    if (mode === 'A1') {
+      if (state.autoPhase === 0) {
+        state.autoPhase = 1;
+        state.removedCardIds.clear();
+        state.usedFallingIds.clear();
+        setTimeout(nextRound, 0);
+        return;
+      }
+      state.autoPhase = 0;
+    } else if (mode === 'A2') {
+      if (state.autoPhase < 3) {
+        state.autoPhase++;
+        state.removedCardIds.clear();
+        state.usedFallingIds.clear();
+        setTimeout(nextRound, 0);
+        return;
+      }
+      state.autoPhase = 0;
+    }
     if (state.currentLevel < maxDigit) {
       state.currentLevel++;
       state.removedCardIds.clear();
@@ -318,6 +362,8 @@ function start() {
   state.started = true;
   state.score = 0;
   state.currentLevel = 1;
+  state.autoMode = getGameMode();
+  state.autoPhase = 0;
   state.removedCardIds.clear();
   state.usedFallingIds.clear();
   updateScore();
@@ -347,6 +393,8 @@ function reset() {
   state.removedCardIds.clear();
   state.usedFallingIds.clear();
   state.currentLevel = 1;
+  state.autoMode = 'manual';
+  state.autoPhase = 0;
   hideFallingCard();
   updateScore();
   updateLevelDisplay();
@@ -368,6 +416,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById(MAX_DIGIT_ID)?.addEventListener('input', updateMaxDigitControl);
   document.getElementById(SPEED_ID)?.addEventListener('input', updateSpeedControl);
+  document.querySelectorAll('input[name="game-mode"]').forEach(el => {
+    el.addEventListener('change', () => {
+      const manual = document.querySelector('input[name="game-mode"][value="manual"]')?.checked;
+      document.querySelectorAll('.mode-manual-only').forEach(s => s.style.display = manual ? '' : 'none');
+    });
+  });
+  document.querySelectorAll('.mode-manual-only').forEach(s => {
+    s.style.display = document.querySelector('input[name="game-mode"][value="manual"]')?.checked ? '' : 'none';
+  });
   updateScore();
   updateLevelDisplay();
   updateMaxDigitControl();

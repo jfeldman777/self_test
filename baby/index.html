@@ -20,17 +20,27 @@
                     <li>Неправильное нажатие — минус 1, фон краснеет на секунду.</li>
                     <li>Игра идёт по уровням: сначала цифра 1, потом 2, и так до максимума (1–9).</li>
                     <li>Когда все карточки исчезли на последнем уровне — экран мигает жёлтым, игра останавливается.</li>
+                    <li><strong>А1:</strong> точки падают и лежат → цифры падают и лежат → новый максимум.</li>
+                    <li><strong>А2:</strong> точки падают и лежат → цифры падают и лежат → цифры падают, точки лежат → точки падают, цифры лежат → новый максимум.</li>
                 </ul>
             </div>
             <div class="settings">
                 <div class="setting-group">
+                    <div class="setting-label">Режим:</div>
+                    <div class="radio-group">
+                        <label><input type="radio" name="game-mode" value="manual" checked> Обычный</label>
+                        <label><input type="radio" name="game-mode" value="A1"> А1</label>
+                        <label><input type="radio" name="game-mode" value="A2"> А2</label>
+                    </div>
+                </div>
+                <div class="setting-group mode-manual-only">
                     <div class="setting-label">Что падает:</div>
                     <div class="radio-group">
                         <label><input type="radio" name="fall-type" value="digit" checked> Цифра</label>
                         <label><input type="radio" name="fall-type" value="point"> Точка</label>
                     </div>
                 </div>
-                <div class="setting-group">
+                <div class="setting-group mode-manual-only">
                     <div class="setting-label">Что лежит внизу:</div>
                     <div class="checkbox-group">
                         <label><input type="checkbox" id="chk-digits" checked> Цифры</label>
