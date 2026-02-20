@@ -226,6 +226,13 @@ function animateFall() {
   state.animFrame = requestAnimationFrame(tick);
 }
 
+function removeBlink() {
+  const container = document.getElementById('game-container');
+  const area = document.getElementById(GAME_AREA_ID);
+  if (container) container.classList.remove('level-complete-blink');
+  if (area) area.classList.remove('level-complete-blink');
+}
+
 function gameOver() {
   cancelFall();
   hideFallingCard();
@@ -254,11 +261,7 @@ function nextRound() {
     const area = document.getElementById(GAME_AREA_ID);
     if (container) container.classList.add('level-complete-blink');
     if (area) area.classList.add('level-complete-blink');
-    setTimeout(() => {
-      if (container) container.classList.remove('level-complete-blink');
-      if (area) area.classList.remove('level-complete-blink');
-      gameOver();
-    }, 2000);
+    gameOver();
     return;
   }
   let fallingCandidates = getFallingCards()
@@ -311,6 +314,7 @@ function showScreen(id) {
 }
 
 function start() {
+  removeBlink();
   state.started = true;
   state.score = 0;
   state.currentLevel = 1;
@@ -333,6 +337,7 @@ function stop() {
 }
 
 function reset() {
+  removeBlink();
   cancelFall();
   state.started = false;
   state.score = 0;
@@ -357,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reset').addEventListener('click', reset);
   document.getElementById('btn-play').addEventListener('click', () => showScreen('screen-game'));
   document.getElementById('btn-back').addEventListener('click', () => {
+    removeBlink();
     reset();
     showScreen('screen-instructions');
   });

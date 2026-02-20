@@ -278,11 +278,11 @@ h1 {
 }
 
 #game-container.level-complete-blink {
-  animation: levelCompleteBlink 0.5s ease-in-out 4;
+  animation: levelCompleteBlink 0.5s ease-in-out infinite;
 }
 
 .falling-game-area.level-complete-blink {
-  animation: levelCompleteBlink 0.5s ease-in-out 4;
+  animation: levelCompleteBlink 0.5s ease-in-out infinite;
 }
 
 .falling-card {
