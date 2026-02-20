@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сложение</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style2.css">
+    <script src="game2.js" defer></script>
+</head>
+<body>
+    <div id="screen-instructions" class="screen screen-active">
+        <div class="container">
+            <h1>Сложение</h1>
+            <div class="instructions">
+                <h2>Инструкция</h2>
+                <ul>
+                    <li>Показано равенство: карточка + карточка = ?</li>
+                    <li>Нужно кликнуть одну из карточек внизу, чтобы получилось верное равенство.</li>
+                    <li>Правильный ответ появляется после знака «=».</li>
+                    <li><strong>Режим ТОЧКИ:</strong> карточки-точки (визуальное представление).</li>
+                    <li><strong>Режим ЦИФРЫ:</strong> карточки-цифры.</li>
+                </ul>
+            </div>
+            <div class="settings">
+                <div class="setting-group">
+                    <div class="setting-label">Режим:</div>
+                    <div class="mode-checkboxes">
+                        <label><input type="checkbox" id="mode-points" checked> Точки</label>
+                        <label><input type="checkbox" id="mode-digits"> Цифры</label>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-label">Максимум цифра:</div>
+                    <input type="range" id="max-digit" min="1" max="5" value="3">
+                    <span id="max-digit-value">3</span>
+                </div>
+            </div>
+            <button id="btn-play" class="start-btn">ИГРАТЬ</button>
+            <div class="nav-section">
+                <a href="index.html" class="link-btn">Падающие карточки</a>
+                <a href="../1.html" class="link-btn">1</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div id="game-container" class="container">
+            <h1>Сложение</h1>
+            <div class="add-score">
+                <span class="score-label">Сумма:</span>
+                <span id="score" class="score-value">0</span>
+                <span class="score-sep">|</span>
+                <span class="score-label">Режим:</span>
+                <span id="mode-label" class="score-value">Точки</span>
+            </div>
+            <div class="add-controls">
+                <button id="btn-start" class="start-btn">СТАРТ</button>
+                <button id="btn-stop" class="stop-btn" disabled>СТОП</button>
+                <button id="btn-reset" class="restart-btn">СБРОС</button>
+                <button id="btn-back" class="stop-btn">НАЗАД</button>
+            </div>
+            <div id="equation-area" class="equation-area">
+                <div class="equation-row">
+                    <div id="card1" class="eq-card"></div>
+                    <span class="eq-op">+</span>
+                    <div id="card2" class="eq-card"></div>
+                    <span class="eq-op">=</span>
+                    <div id="card-answer" class="eq-card eq-answer"></div>
+                </div>
+            </div>
+            <div id="bottom-cards" class="add-bottom-cards"></div>
+        </div>
+    </div>
+</body>
+</html>
