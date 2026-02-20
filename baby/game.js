@@ -6,7 +6,7 @@
  * Успел = +1, не успел = -1.
  */
 
-// Карточки: 1a, 1b, 2a, 2b, 3a, 3b, 4a, 4b, 5a, 5b (группа = первая цифра)
+// Карточки: 1a..9b (группа = первая цифра)
 const CARDS_DATA = [
   { id: '1a', img: 'img/1a.png', group: 1 },
   { id: '1b', img: 'img/1b.png', group: 1 },
@@ -17,7 +17,15 @@ const CARDS_DATA = [
   { id: '4a', img: 'img/4a.png', group: 4 },
   { id: '4b', img: 'img/4b.png', group: 4 },
   { id: '5a', img: 'img/5a.png', group: 5 },
-  { id: '5b', img: 'img/5b.png', group: 5 }
+  { id: '5b', img: 'img/5b.png', group: 5 },
+  { id: '6a', img: 'img/6a.png', group: 6 },
+  { id: '6b', img: 'img/6b.png', group: 6 },
+  { id: '7a', img: 'img/7a.png', group: 7 },
+  { id: '7b', img: 'img/7b.png', group: 7 },
+  { id: '8a', img: 'img/8a.png', group: 8 },
+  { id: '8b', img: 'img/8b.png', group: 8 },
+  { id: '9a', img: 'img/9a.png', group: 9 },
+  { id: '9b', img: 'img/9b.png', group: 9 }
 ];
 
 const MAX_DIGIT_ID = 'max-digit';
@@ -55,7 +63,7 @@ function shuffle(arr) {
 
 function getMaxDigit() {
   const el = document.getElementById(MAX_DIGIT_ID);
-  return el ? Math.min(5, Math.max(1, parseInt(el.value, 10) || 1)) : 1;
+  return el ? Math.min(9, Math.max(1, parseInt(el.value, 10) || 1)) : 1;
 }
 
 function getFallDurationMs() {

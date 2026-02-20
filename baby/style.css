@@ -111,8 +111,12 @@ h1 {
 }
 
 .setting-row input[type="range"] {
-  width: 100px;
+  width: 120px;
   accent-color: #2563eb;
+}
+
+#max-digit {
+  width: 140px;
 }
 
 #speed-value,
