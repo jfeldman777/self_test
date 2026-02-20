@@ -21,20 +21,24 @@ const CARDS_DATA = [
 ];
 
 const MAX_DIGIT_ID = 'max-digit';
+const SPEED_ID = 'speed';
 
-const FALL_DURATION_MS = 6000;
+const FALL_DURATION_MIN = 2000;
+const FALL_DURATION_MAX = 10000;
 const GAME_AREA_ID = 'game-area';
 const FALLING_CARD_ID = 'falling-card';
 const BOTTOM_CARDS_ID = 'bottom-cards';
 
 let state = {
   score: 0,
+  currentLevel: 1,
   started: false,
   falling: false,
   fallingCard: null,
   bottomCards: [],
   clickedIds: new Set(),
   removedCardIds: new Set(),
+  usedFallingIds: new Set(),
   animFrame: null,
   fallStartTime: 0,
   wrongClickShown: false
@@ -54,9 +58,46 @@ function getMaxDigit() {
   return el ? Math.min(5, Math.max(1, parseInt(el.value, 10) || 1)) : 1;
 }
 
+function getFallDurationMs() {
+  const el = document.getElementById(SPEED_ID);
+  const speed = el ? Math.min(5, Math.max(1, parseInt(el.value, 10) || 3)) : 3;
+  const t = (speed - 1) / 4;
+  return FALL_DURATION_MAX - t * (FALL_DURATION_MAX - FALL_DURATION_MIN);
+}
+
+function isDigitCard(card) {
+  return card.id.endsWith('a');
+}
+
+function isPointCard(card) {
+  return card.id.endsWith('b');
+}
+
+function getFallType() {
+  const el = document.querySelector('input[name="fall-type"]:checked');
+  return el?.value === 'point' ? 'point' : 'digit';
+}
+
+function getBottomTypes() {
+  const digits = document.getElementById('chk-digits')?.checked ?? true;
+  const points = document.getElementById('chk-points')?.checked ?? true;
+  return { digits: digits || !points, points: points || !digits };
+}
+
 function getActiveCards() {
-  const max = getMaxDigit();
-  return CARDS_DATA.filter(c => c.group <= max);
+  return CARDS_DATA.filter(c => c.group <= state.currentLevel);
+}
+
+function getBottomCards() {
+  const active = getActiveCards();
+  const { digits, points } = getBottomTypes();
+  return active.filter(c => (digits && isDigitCard(c)) || (points && isPointCard(c)));
+}
+
+function getFallingCards() {
+  const active = getActiveCards();
+  const fallType = getFallType();
+  return active.filter(c => fallType === 'digit' ? isDigitCard(c) : isPointCard(c));
 }
 
 function getCardsByGroup(group) {
@@ -66,8 +107,8 @@ function getCardsByGroup(group) {
 function renderBottomCards() {
   const container = document.getElementById(BOTTOM_CARDS_ID);
   container.innerHTML = '';
-  const activeCards = getActiveCards();
-  const available = activeCards.filter(c => !state.removedCardIds.has(c.id));
+  const bottomCards = getBottomCards();
+  const available = bottomCards.filter(c => !state.removedCardIds.has(c.id));
   state.bottomCards = available.length > 0 ? shuffle(available) : [];
   state.bottomCards.forEach(card => {
     const el = document.createElement('button');
@@ -106,6 +147,7 @@ function onBottomCardClick(card, el) {
   }
   state.clickedIds.add(card.id);
   state.removedCardIds.add(card.id);
+  state.usedFallingIds.add(state.fallingCard.id);
   el.style.display = 'none';
   el.style.visibility = 'hidden';
   el.style.pointerEvents = 'none';
@@ -159,9 +201,10 @@ function animateFall() {
   const area = document.getElementById(GAME_AREA_ID);
   if (!area || !el) return;
 
+  const duration = getFallDurationMs();
   function tick(now) {
     const elapsed = now - state.fallStartTime;
-    const progress = Math.min(1, elapsed / FALL_DURATION_MS);
+    const progress = Math.min(1, elapsed / duration);
     const areaRect = area.getBoundingClientRect();
     const maxTop = areaRect.height - el.offsetHeight;
     el.style.top = progress * maxTop + 'px';
@@ -179,6 +222,8 @@ function gameOver() {
   cancelFall();
   hideFallingCard();
   state.started = false;
+  const bottomEl = document.getElementById(BOTTOM_CARDS_ID);
+  if (bottomEl) bottomEl.innerHTML = '';
   document.getElementById('btn-start').disabled = false;
   document.getElementById('btn-stop').disabled = true;
   updateMaxDigitControl();
@@ -188,10 +233,39 @@ function nextRound() {
   if (!state.started) return;
   renderBottomCards();
   if (state.bottomCards.length === 0) {
+    const maxDigit = getMaxDigit();
+    if (state.currentLevel < maxDigit) {
+      state.currentLevel++;
+      state.removedCardIds.clear();
+      state.usedFallingIds.clear();
+      updateLevelDisplay();
+      setTimeout(nextRound, 0);
+      return;
+    }
+    const container = document.getElementById('game-container');
+    const area = document.getElementById(GAME_AREA_ID);
+    if (container) container.classList.add('level-complete-blink');
+    if (area) area.classList.add('level-complete-blink');
+    setTimeout(() => {
+      if (container) container.classList.remove('level-complete-blink');
+      if (area) area.classList.remove('level-complete-blink');
+      gameOver();
+    }, 2000);
+    return;
+  }
+  let fallingCandidates = getFallingCards()
+    .filter(c => !state.usedFallingIds.has(c.id))
+    .filter(c => state.bottomCards.some(b => b.group === c.group));
+  if (fallingCandidates.length === 0 && state.bottomCards.length > 0) {
+    state.usedFallingIds.clear();
+    fallingCandidates = getFallingCards()
+      .filter(c => state.bottomCards.some(b => b.group === c.group));
+  }
+  if (fallingCandidates.length === 0) {
     gameOver();
     return;
   }
-  const card = state.bottomCards[Math.floor(Math.random() * state.bottomCards.length)];
+  const card = fallingCandidates[Math.floor(Math.random() * fallingCandidates.length)];
   state.falling = true;
   showFallingCard(card);
   animateFall();
@@ -200,6 +274,11 @@ function nextRound() {
 function updateScore() {
   const el = document.getElementById('score');
   if (el) el.textContent = state.score;
+}
+
+function updateLevelDisplay() {
+  const el = document.getElementById('current-level');
+  if (el) el.textContent = state.currentLevel;
 }
 
 function updateMaxDigitControl() {
@@ -211,11 +290,26 @@ function updateMaxDigitControl() {
   }
 }
 
+function updateSpeedControl() {
+  const slider = document.getElementById(SPEED_ID);
+  const valueEl = document.getElementById('speed-value');
+  if (slider && valueEl) valueEl.textContent = slider.value;
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('screen-active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('screen-active');
+}
+
 function start() {
   state.started = true;
   state.score = 0;
+  state.currentLevel = 1;
   state.removedCardIds.clear();
+  state.usedFallingIds.clear();
   updateScore();
+  updateLevelDisplay();
   document.getElementById('btn-start').disabled = true;
   document.getElementById('btn-stop').disabled = false;
   updateMaxDigitControl();
@@ -238,8 +332,11 @@ function reset() {
   state.fallingCard = null;
   state.clickedIds.clear();
   state.removedCardIds.clear();
+  state.usedFallingIds.clear();
+  state.currentLevel = 1;
   hideFallingCard();
   updateScore();
+  updateLevelDisplay();
   document.getElementById('btn-start').disabled = false;
   document.getElementById('btn-stop').disabled = true;
   document.getElementById(BOTTOM_CARDS_ID).innerHTML = '';
@@ -250,10 +347,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-start').addEventListener('click', start);
   document.getElementById('btn-stop').addEventListener('click', stop);
   document.getElementById('btn-reset').addEventListener('click', reset);
-  const maxDigitEl = document.getElementById(MAX_DIGIT_ID);
-  if (maxDigitEl) {
-    maxDigitEl.addEventListener('input', updateMaxDigitControl);
-  }
+  document.getElementById('btn-play').addEventListener('click', () => showScreen('screen-game'));
+  document.getElementById('btn-back').addEventListener('click', () => {
+    reset();
+    showScreen('screen-instructions');
+  });
+  document.getElementById(MAX_DIGIT_ID)?.addEventListener('input', updateMaxDigitControl);
+  document.getElementById(SPEED_ID)?.addEventListener('input', updateSpeedControl);
   updateScore();
+  updateLevelDisplay();
   updateMaxDigitControl();
+  updateSpeedControl();
 });
