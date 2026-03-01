@@ -89,14 +89,16 @@ function drawRadarChart(containerId, labels, values) {
         const y = cy + Math.sin(angle) * R;
 
         const btn = document.createElement("button");
-        btn.className = "chart-number-btn";
+        btn.className = "chart-number-btn radar-node";
         btn.textContent = label;
         btn.dataset.hintIndex = (i + 1);
         btn.style.cssText = "position:absolute;left:" + (x - 16) + "px;top:" + (y - 16) + "px;width:32px;height:32px;border-radius:50%;border:2px solid #0077ff;background:rgba(255,255,255,0.9);cursor:pointer;font-weight:bold;font-size:14px;";
-        btn.title = "Подсказка " + (i + 1);
+        btn.title = "Уровень " + (i + 1);
         overlay.appendChild(btn);
 
         btn.addEventListener("click", function() {
+            overlay.querySelectorAll(".radar-node").forEach(n => n.classList.remove("active"));
+            btn.classList.add("active");
             window.dispatchEvent(new CustomEvent("chartHintClick", { detail: { index: i + 1 } }));
         });
     });

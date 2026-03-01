@@ -564,6 +564,7 @@ function loadResult(){
 
   const isLevelsTest = test.name === 'Уровни' && Object.keys(LEVEL_MARKERS).length >= 8;
   if (isLevelsTest) {
+    const verdictData = getLevelsVerdict(r, meanings);
     const top3 = Object.keys(r)
       .filter(k => meanings[k] && r[k] != null && r[k] > 0)
       .map(k => ({ key: k, level: parseInt(meanings[k], 10) || parseInt(k, 10) + 1, pct: r[k] }))
@@ -571,17 +572,25 @@ function loadResult(){
       .slice(0, 3);
     const rowStyles = { 1: 'font-weight:bold;color:#003366', 2: 'font-weight:bold;color:#1a5fb4', 3: 'font-weight:bold;color:#62a0ea' };
     const keys = Object.keys(meanings).sort((a, b) => Number(a) - Number(b));
-    let tableHtml = '<table class="result-levels-table"><tbody>';
+    let tableHtml = '<table class="result-levels-table levels-list"><tbody>';
     keys.forEach(k => {
       if (!meanings[k] || (r[k] == null && r[k] !== 0)) return;
       const level = parseInt(meanings[k], 10) || parseInt(k, 10) + 1;
       const rank = top3.findIndex(t => t.level === level) + 1;
-      const marker = (r[k] > 0 && rank) ? LEVEL_MARKERS[level] || '' : '';
+      const marker = (r[k] > 0 && rank) ? (LEVEL_NAMES[level] || '') : '';
       const trStyle = rank ? rowStyles[rank] : (r[k] === 0 ? 'color:#bbb' : '');
-      tableHtml += `<tr style="${trStyle}"><td class="rl-lvl">${level}</td><td class="rl-word">${marker}</td><td class="rl-num">${r[k]}%</td></tr>`;
+      const trClass = r[k] === 0 ? 'zero' : '';
+      tableHtml += `<tr class="${trClass}" style="${trStyle}"><td class="rl-lvl">${level}</td><td class="rl-word">${marker}</td><td class="rl-num percent">${r[k]}%</td></tr>`;
     });
     tableHtml += '</tbody></table>';
-    div.innerHTML += tableHtml;
+    let cardHtml = '<div class="result-block">';
+    if (verdictData && verdictData.dominant) {
+      cardHtml += '<div class="result-dominant">' + verdictData.dominant + '</div>';
+        // '<div class="result-subdominant">' + verdictData.subdominant + '</div>' +
+        // '<div class="result-profile">' + verdictData.profile + '</div>';
+    }
+    cardHtml += tableHtml + '</div>';
+    div.innerHTML += cardHtml;
   } else {
     for (let k in r){
       if (meanings[k] && r[k] !== null && r[k] !== undefined) {
@@ -592,7 +601,7 @@ function loadResult(){
   }
 
   // кнопка вернуться
-  div.innerHTML += `<a class="btn" href="index.html">${getUITranslation('btn_home', 'Домой')}</a>`;
+  div.innerHTML += `<a class="btn home-button" href="index.html">${getUITranslation('btn_home', 'Домой')}</a>`;
 
   // отрисовка диаграммы — для всех тестов (Уровни, Разогрев и др.)
   const chartDiv = document.getElementById('chart');
@@ -614,15 +623,65 @@ const LEVEL_MARKERS = {
   5: 'генерал', 6: 'автор учебника', 7: 'изобретатель', 8: 'интегратор'
 };
 
+const LEVEL_NAMES = {
+  1: 'Солдат', 2: 'Студент', 3: 'Офицер', 4: 'Преподаватель',
+  5: 'Генерал', 6: 'Автор учебника', 7: 'Изобретатель', 8: 'Интегратор'
+};
+
+const LEVEL_PROFILES = {
+  '5-6': 'системный управленец с теоретическим усилением',
+  '5-7': 'стратег с инновационным уклоном',
+  '5-4': 'управленец с педагогической опорой',
+  '6-5': 'теоретик с управленческими способностями',
+  '6-7': 'систематизатор с творческим потенциалом',
+  '6-4': 'автор методик, передающий знания',
+  '7-6': 'инноватор с теоретической базой',
+  '7-5': 'изобретатель со стратегическим мышлением',
+  '4-5': 'педагог с управленческими амбициями',
+  '4-6': 'преподаватель-теоретик',
+  '3-5': 'тактик со стратегическим резервом',
+  '3-4': 'офицер-наставник',
+  '2-3': 'практик с организационными навыками',
+  '1-2': 'исполнитель в процессе обучения'
+};
+
+function getLevelsVerdict(r, meanings) {
+  let data = r;
+  let levelFromKey = k => (meanings && meanings[k] != null) ? parseInt(meanings[k], 10) : parseInt(k, 10);
+  if (r && r.levels) {
+    data = r.levels;
+    levelFromKey = k => parseInt(k, 10);
+  }
+  const sorted = Object.keys(data)
+    .filter(k => data[k] != null)
+    .map(k => ({ level: levelFromKey(k), pct: data[k] }))
+    .sort((a, b) => b.pct - a.pct);
+  if (sorted.length < 2) return null;
+  const dom = sorted[0];
+  const sub = sorted[1];
+  const diff = dom.pct - sub.pct;
+  const mixed = diff < 5;
+  const domName = LEVEL_NAMES[dom.level] || LEVEL_MARKERS[dom.level] || 'Уровень ' + dom.level;
+  const subName = LEVEL_NAMES[sub.level] || LEVEL_MARKERS[sub.level] || 'Уровень ' + sub.level;
+  const key = dom.level + '-' + sub.level;
+  const profile = LEVEL_PROFILES[key] || domName.toLowerCase() + ' с опорой на ' + subName.toLowerCase();
+  const title = mixed ? 'СМЕШАННЫЙ ПРОФИЛЬ' : 'ДОМИНАНТА';
+  return {
+    dominant: '<span class="label">' + title + '</span>: ' + dom.level + ' — ' + domName + ' (<span class="percent">' + dom.pct + '%</span>)',
+    subdominant: 'СУБДОМИНАНТА: ' + sub.level + ' — ' + subName + ' (' + sub.pct + '%)',
+    profile: 'Профиль: ' + profile + '.'
+  };
+}
+
 const LEVEL_HINTS = {
   1: '<strong>Сознание</strong> магическое (чудо, тайна). <strong>Мышление</strong>: что? вещь, имя, узнавание, наименование. <strong>Взаимодействие</strong>: концентрация, изоляция, медитация. <strong>Возраст</strong> 0–3. <strong>Эпоха</strong>: охотники. <strong>Функция</strong>: раб, солдат, простейший исполнитель. Один объект в поле внимания.',
   2: '<strong>Сознание</strong> этическое (добро, зло). <strong>Мышление</strong>: где, пространство, граница, различение, разграничение. <strong>Взаимодействие</strong>: свой, чужой. <strong>Возраст</strong> 3–6. <strong>Эпоха</strong>: аграрии. <strong>Функция</strong>: студент, крестьянин. Много объектов в поле внимания.',
-  3: 'Подсказка 3',
-  4: 'Подсказка 4',
-  5: 'Подсказка 5',
-  6: 'Подсказка 6',
-  7: 'Подсказка 7',
-  8: 'Подсказка 8'
+  3: '<strong>Сознание</strong> эстетическое (красота, уродство). <strong>Мышление</strong>: когда? время, движение, упорядочение, уточнение. <strong>Взаимодействие</strong>: борьба, сила, цель, доминирование, подчинение. <strong>Функция</strong>: офицер, люмпен-пролетарий. <strong>Возраст</strong> 6–9. <strong>Эпоха</strong>: античные империи. Один процесс в поле внимания.',
+  4: '<strong>Сознание</strong> ролевое (способы, правила). <strong>Мышление</strong>: как? алгоритм, шаблон, координация, синхронизация. <strong>Взаимодействие</strong>: обещания, обязательства. <strong>Функция</strong>: преподаватель, священник. <strong>Возраст</strong> 9–12. <strong>Эпоха</strong>: средневековье. Много процессов в поле внимания.',
+  5: '<strong>Сознание</strong> свободное (выбор, произвол). <strong>Мышление</strong>: кто? пробы и ошибки, случайность, импровизация, риск. <strong>Взаимодействие</strong>: поступок, принятие решения. <strong>Функция</strong>: буржуа, капитан, генерал, судья. <strong>Возраст</strong> 12–15. <strong>Эпоха</strong>: Возрождение, Реформация. Одна карта в поле внимания.',
+  6: '<strong>Сознание</strong> теоретическое (истина, ложь). <strong>Мышление</strong>: почему? причина, следствие, сомнение, доказательство. <strong>Взаимодействие</strong>: дискуссия, диалог. <strong>Функция</strong>: автор учебника, учёный, финансист, юрист. <strong>Возраст</strong> 15–18. <strong>Эпоха</strong>: индустриализация. Много карт в поле внимания.',
+  7: '<strong>Сознание</strong> парадоксальное (гений, безумец). <strong>Мышление</strong>: а если? инновация, революция, аномалия, парадокс. <strong>Взаимодействие</strong>: научная революция, смена парадигмы. <strong>Функция</strong>: изобретатель, генератор инноваций. <strong>Возраст</strong> 18–21. <strong>Эпоха</strong>: ХХ век. Одна система в поле внимания.',
+  8: '<strong>Сознание</strong> универсальное (экология, учёт отдалённых последствий). <strong>Мышление</strong>: а зачем? мультиверсум, гармония, баланс. <strong>Взаимодействие</strong>: эмпатия, моделирование чужого сознания как неоднородного своему. <strong>Функция</strong>: интегратор, модератор, переводчик-полиглот. <strong>Возраст</strong> 21+. <strong>Эпоха</strong>: наше время. Много систем в поле внимания.'
 };
 
 function initChartHintPanel() {
@@ -633,8 +692,8 @@ function initChartHintPanel() {
     const index = e.detail && e.detail.index;
     if (index) {
       const text = LEVEL_HINTS[index] || 'Подсказка ' + index;
-      const html = '<p class="hint-content"><strong>Уровень ' + index + '</strong></p>' +
-        '<p class="hint-content">' + text.replace(/\.\s+/g, '.<br>') + '</p>';
+      const html = '<div class="level-details"><p class="level-details-title">Уровень ' + index + '</p>' +
+        '<p class="hint-content">' + text.replace(/\.\s+/g, '.<br>') + '</p></div>';
       hintPanel.innerHTML = html;
     }
   });
