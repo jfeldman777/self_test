@@ -7,7 +7,6 @@ let keywordsData = {}; // Данные ключевых слов для тест
 
 const PROF_TEST_MAPPING = [
   { field: 'levels', testName: 'Уровни' },
-  { field: 'levels', testName: 'Уровни-2' },
   { field: 'warming', testName: 'Разогрев' },
   { field: 'coding_small', testName: 'Кодировки мелкие' },
   { field: 'coding_medium', testName: 'Кодировки средние' },
@@ -135,7 +134,7 @@ function loadIndex(){
     const alreadyTaken = takenTests.has(i);
     const testName = t.name || `Test ${i + 1}`;
     
-    const isDisabled = i > 0;
+    const isDisabled = false;
     if (alreadyTaken){
       htmlContent += `
         <div class="testItem testItem--taken${isDisabled ? ' testItem--grey' : ''}">
