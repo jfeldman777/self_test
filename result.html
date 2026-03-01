@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
   <script src="radarChart.js" defer></script>
+  <script src="script.js" defer></script>
   <title>Результаты</title>
 </head>
 <body>
@@ -22,7 +22,12 @@
 
 <main>
   <div id="result-container"></div>
-  <div id="chart"></div>
+  <div class="chart-with-hint">
+    <div id="chart" class="result-chart"></div>
+    <div id="hint-panel" class="hint-panel">
+      <p class="hint-placeholder">Кликните цифру на диаграмме для расшифровки</p>
+    </div>
+  </div>
 </main>
 </body>
 </html>

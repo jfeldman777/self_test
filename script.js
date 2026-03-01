@@ -98,10 +98,7 @@ Promise.all([
 //-----------------------------------------
 function loadIndex(){
   const list = document.getElementById("test-list");
-  if (!list) {
-    console.warn('loadIndex: test-list element not found');
-    return;
-  }
+  if (!list) return;
 
   list.innerHTML = "";
 
@@ -138,9 +135,10 @@ function loadIndex(){
     const alreadyTaken = takenTests.has(i);
     const testName = t.name || `Test ${i + 1}`;
     
+    const isDisabled = i > 0;
     if (alreadyTaken){
       htmlContent += `
-        <div class="testItem testItem--taken">
+        <div class="testItem testItem--taken${isDisabled ? ' testItem--grey' : ''}">
           <span class="test-link disabled">
             <b>${testName}</b>
           </span>
@@ -149,8 +147,8 @@ function loadIndex(){
       `;
     } else {
       htmlContent += `
-        <div class="testItem">
-          <a class="test-link" href="test.html?test=${i}">
+        <div class="testItem${isDisabled ? ' testItem--grey' : ''}">
+          <a class="test-link" href="${isDisabled ? '#' : 'test.html?test=' + i}"${isDisabled ? ' onclick="return false"' : ''}>
             <b>${testName}</b>
           </a>
         </div>
@@ -555,33 +553,91 @@ function loadResult(){
   }
 
   const test = testData.tests[saved.testIndex];
+  if (!test || !test.answersMeaning) {
+    div.innerHTML += "<p>" + getUITranslation('no_result', 'No result.') + "</p>";
+    return;
+  }
   const meanings = test.answersMeaning;
   const r = saved.result;
 
   div.innerHTML = `<h3>${test.name}</h3>`;
 
-  // вывод результатов
+  const isLevelsTest = test.name === 'Уровни' && Object.keys(LEVEL_MARKERS).length >= 8;
+  if (isLevelsTest) {
+    const top3 = Object.keys(r)
+      .filter(k => meanings[k] && r[k] != null && r[k] > 0)
+      .map(k => ({ key: k, level: parseInt(meanings[k], 10) || parseInt(k, 10) + 1, pct: r[k] }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, 3);
+    const rowStyles = { 1: 'font-weight:bold;color:#003366', 2: 'font-weight:bold;color:#1a5fb4', 3: 'font-weight:bold;color:#62a0ea' };
+    const keys = Object.keys(meanings).sort((a, b) => Number(a) - Number(b));
+    let tableHtml = '<table class="result-levels-table"><tbody>';
+    keys.forEach(k => {
+      if (!meanings[k] || (r[k] == null && r[k] !== 0)) return;
+      const level = parseInt(meanings[k], 10) || parseInt(k, 10) + 1;
+      const rank = top3.findIndex(t => t.level === level) + 1;
+      const marker = (r[k] > 0 && rank) ? LEVEL_MARKERS[level] || '' : '';
+      const trStyle = rank ? rowStyles[rank] : (r[k] === 0 ? 'color:#bbb' : '');
+      tableHtml += `<tr style="${trStyle}"><td class="rl-lvl">${level}</td><td class="rl-word">${marker}</td><td class="rl-num">${r[k]}%</td></tr>`;
+    });
+    tableHtml += '</tbody></table>';
+    div.innerHTML += tableHtml;
+  } else {
     for (let k in r){
-    // Проверяем, что значение существует и не null/undefined
-    if (meanings[k] && r[k] !== null && r[k] !== undefined) {
-      const translatedLabel = getTranslatedAnswersMeaning(saved.testIndex, k);
-      div.innerHTML += `<p>${translatedLabel}: <b>${r[k]}%</b></p>`;
+      if (meanings[k] && r[k] !== null && r[k] !== undefined) {
+        const translatedLabel = getTranslatedAnswersMeaning(saved.testIndex, k);
+        div.innerHTML += `<p>${translatedLabel}: <b>${r[k]}%</b></p>`;
+      }
     }
   }
 
   // кнопка вернуться
   div.innerHTML += `<a class="btn" href="index.html">${getUITranslation('btn_home', 'Домой')}</a>`;
 
-  // отрисовка диаграммы
+  // отрисовка диаграммы — для всех тестов (Уровни, Разогрев и др.)
   const chartDiv = document.getElementById('chart');
-  if (chartDiv) {
-    chartDiv.innerHTML = ''; // очищаем перед отрисовкой
-    // Получаем ключи в правильном порядке (численно отсортированные)
+  if (chartDiv && typeof drawRadarChart === 'function') {
+    chartDiv.innerHTML = '';
+    chartDiv.style.minHeight = '420px';
     const keys = Object.keys(meanings).sort((a, b) => Number(a) - Number(b));
     const labels = keys.map(k => getTranslatedAnswersMeaning(saved.testIndex, k));
-    const values = keys.map(k => r[k] || 0);
-    drawRadarChart('chart', labels, values);
+    const values = keys.map(k => (r[k] !== undefined && r[k] !== null ? r[k] : 0));
+    if (keys.length > 0) {
+      drawRadarChart('chart', labels, values);
+      initChartHintPanel();
+    }
   }
+}
+
+const LEVEL_MARKERS = {
+  1: 'солдат', 2: 'студент', 3: 'офицер', 4: 'преподаватель',
+  5: 'генерал', 6: 'автор учебника', 7: 'изобретатель', 8: 'интегратор'
+};
+
+const LEVEL_HINTS = {
+  1: '<strong>Сознание</strong> магическое (чудо, тайна). <strong>Мышление</strong>: что? вещь, имя, узнавание, наименование. <strong>Взаимодействие</strong>: концентрация, изоляция, медитация. <strong>Возраст</strong> 0–3. <strong>Эпоха</strong>: охотники. <strong>Функция</strong>: раб, солдат, простейший исполнитель. Один объект в поле внимания.',
+  2: '<strong>Сознание</strong> этическое (добро, зло). <strong>Мышление</strong>: где, пространство, граница, различение, разграничение. <strong>Взаимодействие</strong>: свой, чужой. <strong>Возраст</strong> 3–6. <strong>Эпоха</strong>: аграрии. <strong>Функция</strong>: студент, крестьянин. Много объектов в поле внимания.',
+  3: 'Подсказка 3',
+  4: 'Подсказка 4',
+  5: 'Подсказка 5',
+  6: 'Подсказка 6',
+  7: 'Подсказка 7',
+  8: 'Подсказка 8'
+};
+
+function initChartHintPanel() {
+  const hintPanel = document.getElementById('hint-panel');
+  if (!hintPanel) return;
+  hintPanel.innerHTML = '<p class="hint-placeholder">Кликните цифру на диаграмме для расшифровки</p>';
+  window.addEventListener('chartHintClick', function(e) {
+    const index = e.detail && e.detail.index;
+    if (index) {
+      const text = LEVEL_HINTS[index] || 'Подсказка ' + index;
+      const html = '<p class="hint-content"><strong>Уровень ' + index + '</strong></p>' +
+        '<p class="hint-content">' + text.replace(/\.\s+/g, '.<br>') + '</p>';
+      hintPanel.innerHTML = html;
+    }
+  });
 }
 
 
