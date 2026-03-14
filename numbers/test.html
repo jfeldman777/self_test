@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тест</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .test-page { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+    .test-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .test-text { line-height: 2; font-size: 1.1rem; margin-bottom: 24px; white-space: pre-line; }
+    .test-input {
+      width: 50px; padding: 6px 10px; font-size: 1rem; text-align: center;
+      border: 2px solid #cbd5e1; border-radius: 6px; display: inline-block; vertical-align: baseline;
+    }
+    .test-input:focus { outline: none; border-color: #2563eb; }
+    .test-input.wrong { border-color: #dc2626; background: #fef2f2; color: #dc2626; cursor: help; }
+    .test-input.correct { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+    .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+    .btn {
+      padding: 12px 20px; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px;
+      cursor: pointer; text-decoration: none; display: inline-block; text-align: center;
+    }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-success { background: #16a34a; color: white; }
+    .btn-success:hover { background: #15803d; }
+  </style>
+</head>
+<body>
+  <div class="test-page">
+    <h1 class="test-title" id="test-title">Тест</h1>
+    <div class="test-text" id="test-container"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-start">Начать</button>
+      <button class="btn btn-primary" id="btn-check">Проверить</button>
+      <a href="#" class="btn btn-success" id="btn-next">Следующий</a>
+      <a href="../doors.html" class="btn btn-secondary">Домой</a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const currentId = parseInt(params.get('n') || '1', 10);
+    let tests = [];
+    let currentTest = null;
+
+    function parseText(text) {
+      const regex = /@(\d+)\(([^)]*)\)/g;
+      const parts = [];
+      let lastIndex = 0;
+      let match;
+      while ((match = regex.exec(text)) !== null) {
+        if (match.index > lastIndex) parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+        parts.push({ type: 'input', correct: match[1], hint: match[2] });
+        lastIndex = regex.lastIndex;
+      }
+      if (lastIndex < text.length) parts.push({ type: 'text', value: text.slice(lastIndex) });
+      return parts;
+    }
+
+    function renderTest(container, text) {
+      const parts = parseText(text);
+      container.innerHTML = '';
+      parts.forEach(part => {
+        if (part.type === 'text') {
+          container.appendChild(document.createTextNode(part.value));
+        } else {
+          const span = document.createElement('span');
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.className = 'test-input';
+          input.dataset.correct = part.correct;
+          input.dataset.hint = part.hint;
+          input.setAttribute('inputmode', 'numeric');
+          span.appendChild(input);
+          container.appendChild(span);
+        }
+      });
+    }
+
+    function resetInputs() {
+      document.querySelectorAll('.test-input').forEach(input => {
+        input.value = '';
+        input.classList.remove('correct', 'wrong');
+        input.removeAttribute('title');
+      });
+    }
+
+    function checkAnswers() {
+      document.querySelectorAll('.test-input').forEach(input => {
+        const correct = input.dataset.correct;
+        const hint = input.dataset.hint;
+        const userAnswer = input.value.trim();
+        input.classList.remove('correct', 'wrong');
+        input.removeAttribute('title');
+        if (userAnswer === '') return;
+        if (userAnswer === correct) {
+          input.classList.add('correct');
+        } else {
+          input.classList.add('wrong');
+          input.title = hint || 'Неправильно';
+        }
+      });
+    }
+
+    function loadTest(id) {
+      currentTest = tests.find(t => t.id === id);
+      if (!currentTest) {
+        document.getElementById('test-title').textContent = 'Тест не найден';
+        document.getElementById('test-container').innerHTML = '';
+        document.getElementById('btn-next').style.display = 'none';
+        return;
+      }
+      document.getElementById('test-title').textContent = currentTest.title;
+      document.title = currentTest.title + ' — Тест';
+      const text = Array.isArray(currentTest.text) ? currentTest.text.join('\n') : currentTest.text;
+      renderTest(document.getElementById('test-container'), text);
+
+      const nextTest = tests.find(t => t.id > id);
+      const btnNext = document.getElementById('btn-next');
+      if (nextTest) {
+        btnNext.href = 'test.html?n=' + nextTest.id;
+        btnNext.style.display = 'inline-block';
+      } else {
+        btnNext.href = 'index.html';
+        btnNext.textContent = 'К списку';
+        btnNext.style.display = 'inline-block';
+      }
+    }
+
+    fetch('tests.json')
+      .then(r => r.json())
+      .then(data => {
+        tests = data;
+        loadTest(currentId);
+      })
+      .catch(() => {
+        document.getElementById('test-container').innerHTML = '<p>Ошибка загрузки теста</p>';
+      });
+
+    document.getElementById('btn-start').addEventListener('click', () => loadTest(currentId));
+    document.getElementById('btn-check').addEventListener('click', checkAnswers);
+  </script>
+</body>
+</html>

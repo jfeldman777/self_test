@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Выбери свою дверь</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .doors-page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .doors-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: #1a365d;
+    }
+    .doors-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .door {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+      padding: 24px;
+      background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+      border: 3px solid #2563eb;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #1e293b;
+      font-size: 1.25rem;
+      font-weight: 600;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .door:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.2);
+    }
+    .door::before {
+      content: '🚪';
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="doors-page">
+    <h1 class="doors-title">Выбери свою дверь</h1>
+    <div class="doors-grid">
+      <a href="doors-explain.html?d=1" class="door">Чувствую</a>
+      <a href="doors-explain.html?d=2" class="door">Действую</a>
+      <a href="doors-explain.html?d=3" class="door">Думаю</a>
+      <a href="doors-explain.html?d=4" class="door">Все сразу</a>
+    </div>
+  </div>
+</body>
+</html>

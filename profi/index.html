@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профессии</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .profi-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .profi-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .profi-list { list-style: none; padding: 0; margin: 0; }
+    .profi-list li { margin-bottom: 12px; }
+    .profi-link {
+      display: block; padding: 16px 20px; background: #f8f9fa; border: 2px solid #2563eb;
+      border-radius: 8px; color: #1e293b; text-decoration: none; font-weight: 500;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .profi-link:hover { background: #eef2ff; transform: translateX(4px); }
+  </style>
+</head>
+<body>
+  <div class="profi-page">
+    <h1 class="profi-title">Профессии</h1>
+    <ul class="profi-list" id="profi-list"></ul>
+  </div>
+  <script>
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
+      .then(([profi, cards]) => {
+        const ul = document.getElementById('profi-list');
+        const professions = profi.professions;
+        Object.keys(professions).forEach(id => {
+          if (cards[id]) {
+            const li = document.createElement('li');
+            li.innerHTML = `<a href="card.html?id=${id}" class="profi-link">${professions[id]}</a>`;
+            ul.appendChild(li);
+          }
+        });
+      })
+      .catch(() => document.getElementById('profi-list').innerHTML = '<li>Ошибка загрузки</li>');
+  </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тесты</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .numbers-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .numbers-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .test-list { list-style: none; padding: 0; margin: 0; }
+    .test-list li { margin-bottom: 12px; }
+    .test-link {
+      display: block; padding: 16px 20px; background: #f8f9fa; border: 2px solid #2563eb;
+      border-radius: 8px; color: #1e293b; text-decoration: none; font-weight: 500;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .test-link:hover { background: #eef2ff; transform: translateX(4px); }
+    .home-btn { display: inline-block; margin-top: 24px; padding: 10px 20px; background: #64748b; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; }
+    .home-btn:hover { background: #475569; }
+  </style>
+</head>
+<body>
+  <div class="numbers-page">
+    <h1 class="numbers-title">Тесты</h1>
+    <ul class="test-list" id="test-list"></ul>
+    <a href="../doors.html" class="home-btn">Домой</a>
+  </div>
+  <script>
+    fetch('tests.json')
+      .then(r => r.json())
+      .then(tests => {
+        const ul = document.getElementById('test-list');
+        tests.forEach((t, i) => {
+          const li = document.createElement('li');
+          li.innerHTML = `<a href="test.html?n=${t.id}" class="test-link">${t.title}</a>`;
+          ul.appendChild(li);
+        });
+      })
+      .catch(() => document.getElementById('test-list').innerHTML = '<li>Ошибка загрузки тестов</li>');
+  </script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профессия</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .card-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .card-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 16px; color: #1a365d; }
+    .card-img { width: 100%; max-width: 400px; border-radius: 12px; margin-bottom: 24px; display: block; }
+    .ability-group { margin-bottom: 20px; }
+    .ability-group-title { font-weight: 700; color: #475569; margin-bottom: 8px; font-size: 0.95rem; }
+    .ability-row {
+      display: flex; align-items: center; gap: 16px; padding: 10px 0;
+      border-bottom: 1px solid #e2e8f0; flex-wrap: wrap;
+    }
+    .ability-name { flex: 1; min-width: 180px; font-weight: 500; }
+    .ability-options { display: flex; gap: 12px; }
+    .ability-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .ability-options input { cursor: pointer; }
+    .ability-row.wrong .ability-name { color: #dc2626; }
+    .ability-row.correct .ability-name { color: #16a34a; }
+    .ability-row.wrong .ability-options { color: #dc2626; }
+    .ability-row.correct .ability-options { color: #16a34a; }
+    .btn-row { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 20px; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px;
+      cursor: pointer; text-decoration: none; display: inline-block;
+    }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; color: white; }
+    .btn-secondary:hover { background: #475569; }
+    .back-link { margin-top: 16px; display: inline-block; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card-page">
+    <h1 class="card-title" id="card-title">Профессия</h1>
+    <img class="card-img" id="card-img" src="" alt="">
+    <form id="ability-form"></form>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="btn-check">ПРОВЕРИТЬ</button>
+      <a href="index.html" class="btn btn-secondary">Назад к профессиям</a>
+    </div>
+    <a href="index.html" class="back-link">← Вернуться на первую страницу</a>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const cardId = params.get('id') || '1';
+    const VALUE_MAP = { '1': 1, '0': 0, '-1': -1 };
+    const LABELS = { '1': 'помогает', '0': 'всё равно', '-1': 'мешает' };
+
+    let profiData = null;
+    let cardData = null;
+    let correctAnswers = [];
+
+    function flattenCardAnswers(cardByGroup) {
+      if (!cardByGroup || Array.isArray(cardByGroup)) return cardByGroup;
+      const flat = [];
+      profiData.abilityGroups.forEach(group => {
+        group.abilities.forEach(ability => {
+          const groupData = cardByGroup[group.name];
+          flat.push(groupData && groupData[ability] !== undefined ? groupData[ability] : 0);
+        });
+      });
+      return flat;
+    }
+
+    function loadCard() {
+      const cardRaw = cardData[cardId];
+      correctAnswers = flattenCardAnswers(cardRaw);
+      if (!correctAnswers || correctAnswers.length === 0) {
+        document.getElementById('card-title').textContent = 'Профессия не найдена';
+        return;
+      }
+
+      const professionName = profiData.professions[cardId] || 'Профессия';
+      document.getElementById('card-title').textContent = professionName;
+      document.getElementById('card-img').src = 'img/' + cardId + '.png';
+      document.getElementById('card-img').alt = professionName;
+
+      const form = document.getElementById('ability-form');
+      form.innerHTML = '';
+      let idx = 0;
+      profiData.abilityGroups.forEach(group => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'ability-group';
+        groupDiv.innerHTML = `<div class="ability-group-title">${group.name}</div>`;
+        group.abilities.forEach(ability => {
+          const row = document.createElement('div');
+          row.className = 'ability-row';
+          row.dataset.index = idx;
+          let opts = '';
+          ['1', '0', '-1'].forEach(v => {
+            const checked = v === '0' ? ' checked' : '';
+            opts += `<label><input type="radio" name="a${idx}" value="${v}"${checked}> ${LABELS[v]}</label>`;
+          });
+          row.innerHTML = `<span class="ability-name">${ability}</span><div class="ability-options">${opts}</div>`;
+          groupDiv.appendChild(row);
+          idx++;
+        });
+        form.appendChild(groupDiv);
+      });
+    }
+
+    function checkAnswers() {
+      const rows = document.querySelectorAll('.ability-row');
+      rows.forEach((row, i) => {
+        row.classList.remove('correct', 'wrong');
+        const selected = document.querySelector(`input[name="a${i}"]:checked`);
+        const userVal = selected ? VALUE_MAP[selected.value] : null;
+        const correctVal = correctAnswers[i];
+
+        if (userVal === null) return;
+
+        if (userVal === correctVal) {
+          row.classList.add('correct');
+        } else {
+          row.classList.add('wrong');
+        }
+      });
+    }
+
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
+      .then(([profi, cards]) => {
+        profiData = profi;
+        cardData = cards;
+        loadCard();
+      })
+      .catch(() => {
+        document.getElementById('card-title').textContent = 'Ошибка загрузки';
+      });
+
+    document.getElementById('btn-check').addEventListener('click', checkAnswers);
+  </script>
+</body>
+</html>

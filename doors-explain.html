@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Объяснение</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .explain-page {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    .explain-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #1a365d;
+    }
+    .explain-content {
+      background: #f8f9fa;
+      padding: 24px;
+      border-radius: 12px;
+      border-left: 4px solid #2563eb;
+      line-height: 1.6;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 24px;
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="explain-page">
+    <h1 class="explain-title" id="door-title">Объяснение</h1>
+    <div class="explain-content" id="door-content">
+      <p>Содержимое загружается...</p>
+    </div>
+    <a href="doors.html" class="back-link">← Вернуться к дверям</a>
+  </div>
+  <script>
+    const content = {
+      1: {
+        title: 'Чувствую',
+        text: 'Вы выбрали дверь «Чувствую». Этот путь связан с эмоциями, интуицией и восприятием через чувства. Здесь важны впечатления, атмосфера и внутренние переживания.'
+      },
+      2: {
+        title: 'Действую',
+        text: 'Вы выбрали дверь «Действую». Этот путь связан с практикой, действием и результатом. Здесь важны поступки, опыт и конкретные достижения.'
+      },
+      3: {
+        title: 'Думаю',
+        text: 'Вы выбрали дверь «Думаю». Этот путь связан с анализом, логикой и размышлением. Здесь важны идеи, структура и понимание.'
+      },
+      4: {
+        title: 'Все сразу',
+        text: 'Вы выбрали дверь «Все сразу». Этот путь объединяет чувства, действия и мысли. Здесь важны целостность, баланс и интеграция разных способов познания.'
+      }
+    };
+    const params = new URLSearchParams(location.search);
+    const d = params.get('d') || '1';
+    const data = content[d] || content[1];
+    document.getElementById('door-title').textContent = data.title;
+    document.getElementById('door-content').innerHTML = '<p>' + data.text + '</p>';
+    document.title = data.title + ' — Объяснение';
+  </script>
+</body>
+</html>
