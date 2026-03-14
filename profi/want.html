@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ОЦЕНИТЬ</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .want-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .want-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .profi-row {
+      display: flex; align-items: center; gap: 16px; padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0; flex-wrap: wrap;
+    }
+    .profi-name { flex: 1; min-width: 180px; font-weight: 500; }
+    .profi-options { display: flex; gap: 16px; }
+    .profi-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .profi-options input { cursor: pointer; }
+    .btn-row { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 20px; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px;
+      cursor: pointer; text-decoration: none; display: inline-block;
+    }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; color: white; }
+    .back-link { margin-top: 16px; display: inline-block; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .results { margin-top: 24px; }
+    .results h3 { font-size: 1.1rem; margin-bottom: 8px; color: #1a365d; }
+    .fail-block { margin-bottom: 16px; padding: 12px; border-radius: 8px; }
+    .fail-block.nado { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .fail-block.katastrofa { background: #fff7ed; border-left: 4px solid #ea580c; }
+    .fail-block h4 { margin: 0 0 8px 0; font-size: 1rem; }
+    .fail-list { margin: 0; padding-left: 20px; }
+    .fail-list li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div class="want-page">
+    <h1 class="want-title">ОЦЕНИТЬ</h1>
+    <p style="margin-bottom: 16px; color: #64748b;">Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.</p>
+    <div id="want-form"></div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="btn-eval">ОЦЕНИТЬ</button>
+      <a href="index.html" class="btn btn-secondary">Назад</a>
+    </div>
+    <div id="results" class="results" style="display: none;"></div>
+    <a href="index.html" class="back-link">← Я понимаю профессии</a>
+  </div>
+
+  <script>
+    const CHOICE = { want: 1, nowant: -1, eval: 0 };
+    let profiData = null;
+    let cardData = null;
+    let flatAbilities = [];
+
+    function buildFlatAbilities() {
+      flatAbilities = [];
+      profiData.abilityGroups.forEach(group => {
+        group.abilities.forEach(ability => {
+          flatAbilities.push({ group: group.name, name: ability });
+        });
+      });
+    }
+
+    function flattenCard(cardByGroup) {
+      if (!cardByGroup || Array.isArray(cardByGroup)) return null;
+      const flat = [];
+      profiData.abilityGroups.forEach(group => {
+        group.abilities.forEach(ability => {
+          const groupData = cardByGroup[group.name];
+          flat.push(groupData && groupData[ability] !== undefined ? groupData[ability] : 0);
+        });
+      });
+      return flat;
+    }
+
+    function loadForm() {
+      buildFlatAbilities();
+      const form = document.getElementById('want-form');
+      form.innerHTML = '';
+      const professions = profiData.professions;
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id]) return;
+        const row = document.createElement('div');
+        row.className = 'profi-row';
+        row.innerHTML = `
+          <span class="profi-name">${professions[id]}</span>
+          <div class="profi-options">
+            <label><input type="radio" name="p${id}" value="want"> хочу</label>
+            <label><input type="radio" name="p${id}" value="nowant"> не хочу</label>
+            <label><input type="radio" name="p${id}" value="eval" checked> оценить</label>
+            <label><input type="radio" name="p${id}" value="skip"> не учитывать</label>
+          </div>
+        `;
+        form.appendChild(row);
+      });
+    }
+
+    function evaluate() {
+      const professions = profiData.professions;
+      const evalIds = [];
+      const choices = {};
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id]) return;
+        const sel = document.querySelector(`input[name="p${id}"]:checked`);
+        if (sel) {
+          choices[id] = sel.value;
+          if (sel.value === 'eval') evalIds.push(id);
+        }
+      });
+
+      if (evalIds.length === 0) {
+        alert('Выберите одну профессию как «оценить»');
+        return;
+      }
+      if (evalIds.length > 1) {
+        alert('Выберите только одну профессию как «оценить»');
+        return;
+      }
+      const evalId = evalIds[0];
+
+      const target = flattenCard(cardData[evalId]);
+      if (!target) return;
+
+      const sum = new Array(target.length).fill(0);
+      Object.keys(choices).forEach(id => {
+        const choice = choices[id];
+        if (choice === 'eval' || choice === 'skip') return;
+        const vals = flattenCard(cardData[id]);
+        if (!vals) return;
+        const sign = choice === 'want' ? 1 : -1;
+        vals.forEach((v, i) => { sum[i] += sign * v; });
+      });
+
+      const nadoNoNet = [];
+      const katastrofa = [];
+      target.forEach((t, i) => {
+        const s = sum[i];
+        const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
+        if (t > 0 && s < 0) nadoNoNet.push(abilityName);
+        if (t < 0 && s > 0) katastrofa.push(abilityName);
+      });
+
+      const results = document.getElementById('results');
+      results.style.display = 'block';
+      let html = '';
+      if (nadoNoNet.length) {
+        html += `<div class="fail-block nado"><h4>НЕУДАЧА</h4><p>НАДО но НЕТ</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+      }
+      if (katastrofa.length) {
+        html += `<div class="fail-block katastrofa"><h4>КАТАСТРОФА</h4><p>НЕ НАДО но ЕСТЬ</p><ul class="fail-list">${katastrofa.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+      }
+      if (!nadoNoNet.length && !katastrofa.length) {
+        html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
+      }
+      results.innerHTML = html;
+    }
+
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
+      .then(([profi, cards]) => {
+        profiData = profi;
+        cardData = cards;
+        loadForm();
+      })
+      .catch(() => document.getElementById('want-form').innerHTML = '<p>Ошибка загрузки</p>');
+
+    document.getElementById('btn-eval').addEventListener('click', evaluate);
+  </script>
+</body>
+</html>

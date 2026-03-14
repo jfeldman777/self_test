@@ -20,8 +20,11 @@
 </head>
 <body>
   <div class="profi-page">
-    <h1 class="profi-title">Профессии</h1>
+    <h1 class="profi-title">Я понимаю профессии</h1>
     <ul class="profi-list" id="profi-list"></ul>
+    <p style="margin-top: 24px;">
+      <a href="want.html" class="profi-link" style="display: inline-block;">ОЦЕНИТЬ</a>
+    </p>
   </div>
   <script>
     Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
