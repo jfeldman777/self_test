@@ -30,7 +30,9 @@
     .fail-block { margin-bottom: 16px; padding: 12px; border-radius: 8px; }
     .fail-block.nado { background: #fef2f2; border-left: 4px solid #dc2626; }
     .fail-block.katastrofa { background: #fff7ed; border-left: 4px solid #ea580c; }
-    .fail-block h4 { margin: 0 0 8px 0; font-size: 1rem; }
+    .fail-block h4 { margin: 0 0 4px 0; font-size: 1rem; }
+    .fail-block .fail-desc { margin: 0 0 12px 0; font-size: 0.9rem; line-height: 1.5; opacity: 0.95; }
+    .prof-name { text-transform: uppercase; color: #2563eb; font-weight: 600; }
     .fail-list { margin: 0; padding-left: 20px; }
     .fail-list li { margin: 4px 0; }
     .eval-target { background: #e0f2fe; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; color: #0369a1; }
@@ -257,15 +259,15 @@
         const numVal = Math.abs(s);
         const valStr = numVal.toFixed(2);
         const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
-        if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
-        if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t < 0 && s > 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t > 0 && s < 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
       });
       nadoNoNet.sort((a, b) => b.val - a.val);
       katastrofa.sort((a, b) => b.val - a.val);
 
       const residual = new Array(target.length).fill(0);
-      nadoNoNet.forEach(a => { residual[a.idx] = -1; });
-      katastrofa.forEach(a => { residual[a.idx] = 1; });
+      nadoNoNet.forEach(a => { residual[a.idx] = 1; });
+      katastrofa.forEach(a => { residual[a.idx] = -1; });
 
       const hobbyCandidates = [];
       Object.keys(professions).forEach(id => {
@@ -282,10 +284,11 @@
       results.style.display = 'block';
       let html = '';
       if (nadoNoNet.length) {
-        html += `<div class="fail-block nado"><h4>НЕУДАЧА</h4><p>НАДО но НЕТ</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        const profName = (professions[evalId] || '').toUpperCase();
+        html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Часть способностей, которые у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
       if (katastrofa.length) {
-        html += `<div class="fail-block katastrofa"><h4>КАТАСТРОФА</h4><p>НЕ НАДО но ЕСТЬ</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        html += `<div class="fail-block katastrofa"><p class="fail-desc">Другая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
       if (!nadoNoNet.length && !katastrofa.length) {
         html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
