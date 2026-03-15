@@ -294,7 +294,7 @@
       if (topHobbies.length) {
         const hobbyLines = topHobbies.map((h, i) => {
           const tochnost = h.dist > 0 ? (1 / h.dist).toFixed(2) : '—';
-          return `${i + 1}. <strong>${h.name}</strong> (точность ${tochnost})`;
+          return `${i + 1}. <strong>${h.name}</strong> (уверенность ${tochnost})`;
         }).join('<br>');
         html += `<div class="hobby-block"><h4>Наилучшая профессия-хобби</h4><p>${hobbyLines}</p></div>`;
       }
