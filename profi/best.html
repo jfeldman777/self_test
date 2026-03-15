@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лучшая профессия</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .best-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .best-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .profi-row { display: flex; align-items: center; gap: 16px; padding: 12px 0; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; }
+    .profi-name { flex: 1; min-width: 180px; font-weight: 500; }
+    .profi-options { display: flex; gap: 16px; }
+    .profi-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .profi-options input { cursor: pointer; }
+    .btn-row { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { padding: 12px 20px; font-size: 1rem; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-secondary { background: #64748b; color: white; }
+    .back-link { margin-top: 16px; display: inline-block; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .result-block { margin-top: 24px; }
+    .result-block h3 { margin: 0 0 12px 0; font-size: 1.1rem; }
+    .best-desc { color: #64748b; margin-bottom: 16px; }
+    .fail-block { margin-bottom: 16px; padding: 12px; border-radius: 8px; }
+    .fail-block.nado { background: #fef2f2; border-left: 4px solid #dc2626; }
+    .fail-block.katastrofa { background: #fff7ed; border-left: 4px solid #ea580c; }
+    .fail-block .fail-desc { margin: 0 0 12px 0; font-size: 0.9rem; line-height: 1.5; }
+    .prof-name { text-transform: uppercase; color: #2563eb; font-weight: 600; }
+    .fail-list { margin: 0; padding-left: 20px; }
+    .fail-list li { margin: 4px 0; }
+    .hobby-block { background: #f0fdf4; padding: 16px; border-radius: 8px; margin-top: 16px; border-left: 4px solid #16a34a; }
+    .hobby-block h4 { margin: 0 0 8px 0; font-size: 1rem; }
+    .home-link { display: inline-block; margin-top: 20px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="best-page">
+    <a href="index.html" class="back-link">← Назад к профессиям</a>
+    <h1 class="best-title">ЛУЧШАЯ ПРОФЕССИЯ</h1>
+    <p class="best-desc">Выберите для каждой профессии: хочу / не хочу / не учитывать. Алгоритм найдёт лучший вариант с учётом статуса и зарплаты.</p>
+    <div id="best-form"></div>
+    <div class="btn-row">
+      <button type="button" class="btn btn-primary" id="btn-find">Найти лучшую</button>
+      <a href="index.html" class="btn btn-secondary">Назад</a>
+    </div>
+    <div id="best-result" class="result-block" style="display: none;"></div>
+  </div>
+  <script>
+    const STORAGE_KEY = 'profiStatusOverrides';
+    const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
+    let profiData = null;
+    let cardData = null;
+    let flatAbilities = [];
+
+    function mergeProfi(profi) {
+      try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        const overrides = s ? JSON.parse(s) : {};
+        Object.keys(overrides).forEach(id => {
+          if (profi.professions[id] && typeof profi.professions[id] === 'object') {
+            profi.professions[id].status = overrides[id].status ?? profi.professions[id].status;
+            profi.professions[id].salary = overrides[id].salary ?? profi.professions[id].salary;
+          }
+        });
+      } catch (e) {}
+      return profi;
+    }
+
+    function flattenCard(cardByGroup) {
+      if (!cardByGroup || Array.isArray(cardByGroup)) return null;
+      const flat = [];
+      profiData.abilityGroups.forEach(group => {
+        group.abilities.forEach(ability => {
+          const groupData = cardByGroup[group.name];
+          flat.push(groupData && groupData[ability] !== undefined ? groupData[ability] : 0);
+        });
+      });
+      return flat;
+    }
+
+    function buildFlatAbilities() {
+      flatAbilities = [];
+      profiData.abilityGroups.forEach(group => {
+        group.abilities.forEach(ability => {
+          flatAbilities.push({ group: group.name, name: ability });
+        });
+      });
+    }
+
+    function dist(a, b) {
+      let s = 0;
+      for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) * (a[i] - b[i]);
+      return Math.sqrt(s);
+    }
+
+    function computeDeltaForProfession(evalId, choices) {
+      const target = flattenCard(cardData[evalId]);
+      if (!target) return null;
+      const professions = profiData.professions;
+      const sum = new Array(target.length).fill(0);
+      Object.keys(choices).forEach(id => {
+        if (!cardData[id] || id === evalId) return;
+        const choice = choices[id];
+        if (choice === 'skip') return;
+        const vals = flattenCard(cardData[id]);
+        if (!vals) return;
+        const sign = choice === 'want' ? 1 : -1;
+        vals.forEach((v, i) => { sum[i] += sign * v; });
+      });
+
+      const nadoNoNet = [];
+      const katastrofa = [];
+      target.forEach((t, i) => {
+        const s = sum[i];
+        const numVal = Math.abs(s);
+        const valStr = numVal.toFixed(2);
+        const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
+        if (t < 0 && s > 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t > 0 && s < 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
+      });
+      nadoNoNet.sort((a, b) => b.val - a.val);
+      katastrofa.sort((a, b) => b.val - a.val);
+
+      const problemIndices = new Set([...nadoNoNet.map(a => a.idx), ...katastrofa.map(a => a.idx)]);
+      const firstSum = (nadoNoNet.reduce((a, b) => a + b.val, 0) + katastrofa.reduce((a, b) => a + b.val, 0));
+      const secondSum = sum.reduce((acc, s, i) => problemIndices.has(i) ? acc : acc + s, 0);
+
+      const p = professions[evalId];
+      const status = typeof p === 'object' ? (p.status ?? 5) : 5;
+      const salary = typeof p === 'object' ? (p.salary ?? 50) : 50;
+      const mult = status * salary;
+
+      const firstWeighted = firstSum * mult;
+      const secondWeighted = secondSum * mult;
+      const delta = secondWeighted - firstWeighted;
+
+      const residual = new Array(target.length).fill(0);
+      nadoNoNet.forEach(a => { residual[a.idx] = 1; });
+      katastrofa.forEach(a => { residual[a.idx] = -1; });
+      const hobbyCandidates = [];
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id] || id === evalId) return;
+        const cand = flattenCard(cardData[id]);
+        if (!cand) return;
+        hobbyCandidates.push({ id, name: getName(professions[id]), dist: dist(residual, cand) });
+      });
+      hobbyCandidates.sort((a, b) => a.dist - b.dist);
+      const topHobbies = hobbyCandidates.slice(0, 2);
+
+      return { delta, name: getName(professions[evalId]), status, salary, nadoNoNet, katastrofa, topHobbies };
+    }
+
+    function loadForm() {
+      buildFlatAbilities();
+      const form = document.getElementById('best-form');
+      form.innerHTML = '';
+      const professions = profiData.professions;
+      const ids = Object.keys(professions).filter(id => cardData[id]).sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru'));
+      let num = 1;
+      ids.forEach(id => {
+        const row = document.createElement('div');
+        row.className = 'profi-row';
+        row.innerHTML = `
+          <span class="profi-name">${num}. ${getName(professions[id])}</span>
+          <div class="profi-options">
+            <label><input type="radio" name="p${id}" value="want"> хочу</label>
+            <label><input type="radio" name="p${id}" value="nowant"> не хочу</label>
+            <label><input type="radio" name="p${id}" value="skip" checked> не учитывать</label>
+          </div>
+        `;
+        form.appendChild(row);
+        num++;
+      });
+    }
+
+    function findBest() {
+      const professions = profiData.professions;
+      const choices = {};
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id]) return;
+        const sel = document.querySelector(`input[name="p${id}"]:checked`);
+        if (sel) choices[id] = sel.value;
+      });
+
+      let bestRes = null;
+      let bestDelta = -Infinity;
+
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id]) return;
+        const res = computeDeltaForProfession(id, choices);
+        if (res && res.delta > bestDelta) {
+          bestDelta = res.delta;
+          bestRes = res;
+        }
+      });
+
+      const resultEl = document.getElementById('best-result');
+      if (bestRes) {
+        const profName = (bestRes.name || '').toUpperCase();
+        let html = `<h3>Лучшая профессия для вас: <span class="prof-name">${profName}</span></h3>`;
+        html += `<p>СТАТУС: ${bestRes.status} &nbsp; Зарплата: ${bestRes.salary}</p>`;
+        if (bestRes.nadoNoNet.length) {
+          html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${bestRes.nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        }
+        if (bestRes.katastrofa.length) {
+          html += `<div class="fail-block katastrofa"><p class="fail-desc">Некоторая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${bestRes.katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        }
+        if (!bestRes.nadoNoNet.length && !bestRes.katastrofa.length) {
+          html += '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
+        }
+        if (bestRes.topHobbies.length) {
+          const hobbyLines = bestRes.topHobbies.map((h, i) => {
+            const tochnost = h.dist > 0 ? (1 / h.dist).toFixed(2) : '—';
+            return `${i + 1}. <strong>${h.name}</strong> (уверенность ${tochnost})`;
+          }).join('<br>');
+          html += `<div class="hobby-block"><h4>Наилучшая профессия-хобби</h4><p>${hobbyLines}</p></div>`;
+        }
+        html += '<a href="index.html" class="home-link">Домой</a>';
+        resultEl.innerHTML = html;
+        resultEl.style.display = 'block';
+      } else {
+        resultEl.innerHTML = '<h3>Не удалось определить</h3><p>Выберите хочу/не хочу хотя бы для одной профессии.</p><a href="index.html" class="home-link">Домой</a>';
+        resultEl.style.display = 'block';
+      }
+    }
+
+    Promise.all([fetch('profi.json').then(r => r.json()).then(mergeProfi), fetch('card.json').then(r => r.json())])
+      .then(([profi, cards]) => {
+        profiData = profi;
+        cardData = cards;
+        loadForm();
+      })
+      .catch(() => document.getElementById('best-form').innerHTML = '<p>Ошибка загрузки</p>');
+
+    document.getElementById('btn-find').addEventListener('click', findBest);
+  </script>
+</body>
+</html>

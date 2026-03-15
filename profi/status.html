@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статус и зарплата</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .status-page { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+    .status-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .status-table { width: 100%; border-collapse: collapse; }
+    .status-table th, .status-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    .status-table th { background: #f1f5f9; font-weight: 600; }
+    .status-table input { width: 70px; padding: 6px 8px; }
+    .btn-save { margin-top: 20px; padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #15803d; }
+    .status-hint { font-size: 0.85rem; color: #64748b; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div class="status-page">
+    <a href="index.html" class="back-link">← Назад к профессиям</a>
+    <h1 class="status-title">Статус и зарплата</h1>
+    <p class="status-hint">Статус: 1–10 (насколько трудно попасть в профессию). Зарплата: 0–100.</p>
+    <table class="status-table" id="status-table"></table>
+    <button type="button" class="btn-save" id="btn-save">Сохранить</button>
+  </div>
+  <script>
+    const STORAGE_KEY = 'profiStatusOverrides';
+
+    function loadOverrides() {
+      try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        return s ? JSON.parse(s) : {};
+      } catch (e) { return {}; }
+    }
+
+    function saveOverrides(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function mergeProfi(profi) {
+      const overrides = loadOverrides();
+      const professions = profi.professions;
+      Object.keys(overrides).forEach(id => {
+        if (professions[id]) {
+          if (typeof professions[id] === 'object') {
+            professions[id].status = overrides[id].status ?? professions[id].status;
+            professions[id].salary = overrides[id].salary ?? professions[id].salary;
+          }
+        }
+      });
+      return profi;
+    }
+
+    fetch('profi.json').then(r => r.json())
+      .then(profi => {
+        mergeProfi(profi);
+        const professions = profi.professions;
+        const ids = Object.keys(professions).sort((a, b) => {
+          const na = typeof professions[a] === 'string' ? professions[a] : professions[a].name;
+          const nb = typeof professions[b] === 'string' ? professions[b] : professions[b].name;
+          return na.localeCompare(nb, 'ru');
+        });
+
+        const tbody = ids.map(id => {
+          const p = professions[id];
+          const name = typeof p === 'string' ? p : p.name;
+          const status = typeof p === 'object' ? (p.status ?? 5) : 5;
+          const salary = typeof p === 'object' ? (p.salary ?? 50) : 50;
+          return `<tr data-id="${id}">
+            <td>${name}</td>
+            <td><input type="number" min="1" max="10" value="${status}" data-field="status"></td>
+            <td><input type="number" min="0" max="100" value="${salary}" data-field="salary"></td>
+          </tr>`;
+        }).join('');
+
+        document.getElementById('status-table').innerHTML = `
+          <thead><tr><th>Профессия</th><th>Статус (1–10)</th><th>Зарплата (0–100)</th></tr></thead>
+          <tbody>${tbody}</tbody>
+        `;
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+          const overrides = {};
+          document.querySelectorAll('#status-table tbody tr').forEach(tr => {
+            const id = tr.dataset.id;
+            const status = parseInt(tr.querySelector('[data-field="status"]').value, 10);
+            const salary = parseInt(tr.querySelector('[data-field="salary"]').value, 10);
+            overrides[id] = { status: Math.max(1, Math.min(10, status)), salary: Math.max(0, Math.min(100, salary)) };
+          });
+          saveOverrides(overrides);
+          alert('Сохранено. Изменения применятся при следующей загрузке страниц.');
+        });
+      })
+      .catch(() => document.getElementById('status-table').innerHTML = '<tr><td colspan="3">Ошибка загрузки</td></tr>');
+  </script>
+</body>
+</html>

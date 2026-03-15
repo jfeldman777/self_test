@@ -78,7 +78,8 @@
         return;
       }
 
-      const professionName = profiData.professions[cardId] || 'Профессия';
+      const p = profiData.professions[cardId];
+      const professionName = (typeof p === 'string' ? p : (p && p.name)) || 'Профессия';
       document.getElementById('card-title').textContent = professionName;
       document.getElementById('card-img').src = 'img/' + cardId + '.png';
       document.getElementById('card-img').alt = professionName;
@@ -125,7 +126,21 @@
       });
     }
 
-    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
+    const STORAGE_KEY = 'profiStatusOverrides';
+    function mergeProfi(profi) {
+      try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        const overrides = s ? JSON.parse(s) : {};
+        Object.keys(overrides).forEach(id => {
+          if (profi.professions[id] && typeof profi.professions[id] === 'object') {
+            profi.professions[id].status = overrides[id].status ?? profi.professions[id].status;
+            profi.professions[id].salary = overrides[id].salary ?? profi.professions[id].salary;
+          }
+        });
+      } catch (e) {}
+      return profi;
+    }
+    Promise.all([fetch('profi.json').then(r => r.json()).then(mergeProfi), fetch('card.json').then(r => r.json())])
       .then(([profi, cards]) => {
         profiData = profi;
         cardData = cards;

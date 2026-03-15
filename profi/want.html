@@ -86,6 +86,7 @@
 
   <script>
     const CHOICE = { want: 1, nowant: -1, eval: 0 };
+    const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
     let profiData = null;
     let cardData = null;
     let flatAbilities = [];
@@ -160,20 +161,20 @@
       const hasEval = evalFromUrl && cardData[evalFromUrl];
       if (hasEval) {
         targetDiv.style.display = 'block';
-        targetDiv.textContent = 'Оцениваем: ' + (professions[evalFromUrl] || '');
+        targetDiv.textContent = 'Оцениваем: ' + ((typeof professions[evalFromUrl] === 'string' ? professions[evalFromUrl] : professions[evalFromUrl]?.name) || '');
         descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / не учитывать.';
       } else {
         targetDiv.style.display = 'none';
         descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.';
       }
-      const ids = Object.keys(professions).filter(id => cardData[id] && (!hasEval || id !== evalFromUrl)).sort((a, b) => professions[a].localeCompare(professions[b], 'ru'));
+      const ids = Object.keys(professions).filter(id => cardData[id] && (!hasEval || id !== evalFromUrl)).sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru'));
       let num = 1;
       ids.forEach(id => {
         const row = document.createElement('div');
         row.className = 'profi-row';
         const evalOpt = hasEval ? '' : '<label><input type="radio" name="p' + id + '" value="eval"> оценить</label>';
         row.innerHTML = `
-          <span class="profi-name">${num}. ${professions[id]}</span>
+          <span class="profi-name">${num}. ${getName(professions[id])}</span>
           <div class="profi-options">
             <label><input type="radio" name="p${id}" value="want"> хочу</label>
             <label><input type="radio" name="p${id}" value="nowant"> не хочу</label>
@@ -274,7 +275,7 @@
         const cand = flattenCard(cardData[id]);
         if (!cand) return;
         const d = dist(residual, cand);
-        hobbyCandidates.push({ id, name: professions[id], dist: d });
+        hobbyCandidates.push({ id, name: getName(professions[id]), dist: d });
       });
       hobbyCandidates.sort((a, b) => a.dist - b.dist);
       const topHobbies = hobbyCandidates.slice(0, 2);
@@ -283,11 +284,11 @@
       results.style.display = 'block';
       let html = '';
       if (nadoNoNet.length) {
-        const profName = (professions[evalId] || '').toUpperCase();
-        html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Часть способностей, которые у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        const profName = (getName(professions[evalId]) || '').toUpperCase();
+        html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
       if (katastrofa.length) {
-        html += `<div class="fail-block katastrofa"><p class="fail-desc">Другая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        html += `<div class="fail-block katastrofa"><p class="fail-desc">Некоторая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
       if (!nadoNoNet.length && !katastrofa.length) {
         html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
@@ -338,7 +339,7 @@
     function showProfModal() {
       if (!lastTarget || !lastEvalId || !flatAbilities.length) return;
       const professions = profiData.professions;
-      const profName = professions[lastEvalId] || 'Профессия';
+      const profName = getName(professions[lastEvalId]) || 'Профессия';
       document.getElementById('prof-modal-title').textContent = 'Параметры профессии: ' + profName;
       const ul = document.getElementById('prof-modal-list');
       ul.innerHTML = lastTarget.map((v, i) => {
@@ -363,7 +364,21 @@
       if (e.target.id === 'modal-overlay') document.getElementById('modal-overlay').style.display = 'none';
     });
 
-    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
+    const STORAGE_KEY = 'profiStatusOverrides';
+    function mergeProfi(profi) {
+      try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        const overrides = s ? JSON.parse(s) : {};
+        Object.keys(overrides).forEach(id => {
+          if (profi.professions[id] && typeof profi.professions[id] === 'object') {
+            profi.professions[id].status = overrides[id].status ?? profi.professions[id].status;
+            profi.professions[id].salary = overrides[id].salary ?? profi.professions[id].salary;
+          }
+        });
+      } catch (e) {}
+      return profi;
+    }
+    Promise.all([fetch('profi.json').then(r => r.json()).then(mergeProfi), fetch('card.json').then(r => r.json())])
       .then(([profi, cards]) => {
         profiData = profi;
         cardData = cards;
