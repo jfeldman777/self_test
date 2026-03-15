@@ -90,8 +90,8 @@
           <div class="profi-options">
             <label><input type="radio" name="p${id}" value="want"> хочу</label>
             <label><input type="radio" name="p${id}" value="nowant"> не хочу</label>
-            <label><input type="radio" name="p${id}" value="eval" checked> оценить</label>
-            <label><input type="radio" name="p${id}" value="skip"> не учитывать</label>
+            <label><input type="radio" name="p${id}" value="eval"> оценить</label>
+            <label><input type="radio" name="p${id}" value="skip" checked> не учитывать</label>
           </div>
         `;
         form.appendChild(row);
@@ -126,32 +126,38 @@
       if (!target) return;
 
       const sum = new Array(target.length).fill(0);
+      const count = new Array(target.length).fill(0);
       Object.keys(choices).forEach(id => {
         const choice = choices[id];
         if (choice === 'eval' || choice === 'skip') return;
         const vals = flattenCard(cardData[id]);
         if (!vals) return;
         const sign = choice === 'want' ? 1 : -1;
-        vals.forEach((v, i) => { sum[i] += sign * v; });
+        vals.forEach((v, i) => { sum[i] += sign * v; count[i]++; });
       });
 
       const nadoNoNet = [];
       const katastrofa = [];
       target.forEach((t, i) => {
         const s = sum[i];
+        const n = count[i] || 1;
+        const numVal = n > 0 ? Math.abs(s) / n : 0;
+        const valStr = numVal.toFixed(2);
         const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
-        if (t > 0 && s < 0) nadoNoNet.push(abilityName);
-        if (t < 0 && s > 0) katastrofa.push(abilityName);
+        if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr });
+        if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr });
       });
+      nadoNoNet.sort((a, b) => b.val - a.val);
+      katastrofa.sort((a, b) => b.val - a.val);
 
       const results = document.getElementById('results');
       results.style.display = 'block';
       let html = '';
       if (nadoNoNet.length) {
-        html += `<div class="fail-block nado"><h4>НЕУДАЧА</h4><p>НАДО но НЕТ</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+        html += `<div class="fail-block nado"><h4>НЕУДАЧА</h4><p>НАДО но НЕТ</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
       if (katastrofa.length) {
-        html += `<div class="fail-block katastrofa"><h4>КАТАСТРОФА</h4><p>НЕ НАДО но ЕСТЬ</p><ul class="fail-list">${katastrofa.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+        html += `<div class="fail-block katastrofa"><h4>КАТАСТРОФА</h4><p>НЕ НАДО но ЕСТЬ</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
       if (!nadoNoNet.length && !katastrofa.length) {
         html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
