@@ -37,9 +37,9 @@
       .then(([profi, cards]) => {
         const ul = document.getElementById('profi-list');
         const professions = profi.professions;
+        const ids = Object.keys(professions).filter(id => cards[id]).sort((a, b) => professions[a].localeCompare(professions[b], 'ru'));
         let num = 1;
-        Object.keys(professions).forEach(id => {
-          if (cards[id]) {
+        ids.forEach(id => {
             const li = document.createElement('li');
             li.innerHTML = `
               <div class="profi-item">
@@ -51,8 +51,7 @@
               </div>
             `;
             ul.appendChild(li);
-            num++;
-          }
+          num++;
         });
       })
       .catch(() => document.getElementById('profi-list').innerHTML = '<li>Ошибка загрузки</li>');

@@ -166,10 +166,9 @@
         targetDiv.style.display = 'none';
         descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.';
       }
+      const ids = Object.keys(professions).filter(id => cardData[id] && (!hasEval || id !== evalFromUrl)).sort((a, b) => professions[a].localeCompare(professions[b], 'ru'));
       let num = 1;
-      Object.keys(professions).forEach(id => {
-        if (!cardData[id]) return;
-        if (hasEval && id === evalFromUrl) return;
+      ids.forEach(id => {
         const row = document.createElement('div');
         row.className = 'profi-row';
         const evalOpt = hasEval ? '' : '<label><input type="radio" name="p' + id + '" value="eval"> оценить</label>';
