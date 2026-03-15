@@ -9,22 +9,28 @@
     .profi-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
     .profi-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
     .profi-list { list-style: none; padding: 0; margin: 0; }
-    .profi-list li { margin-bottom: 12px; }
-    .profi-link {
-      display: block; padding: 16px 20px; background: #f8f9fa; border: 2px solid #2563eb;
-      border-radius: 8px; color: #1e293b; text-decoration: none; font-weight: 500;
-      transition: background 0.2s, transform 0.2s;
+    .profi-list li { margin-bottom: 16px; }
+    .profi-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 16px 20px; background: #f8f9fa; border: 2px solid #2563eb; border-radius: 8px;
+      flex-wrap: wrap;
     }
-    .profi-link:hover { background: #eef2ff; transform: translateX(4px); }
+    .profi-item-name { font-weight: 500; flex: 1; min-width: 180px; }
+    .profi-btns { display: flex; gap: 8px; }
+    .profi-btn {
+      padding: 8px 16px; border-radius: 6px; font-weight: 500; text-decoration: none;
+      font-size: 0.9rem; transition: background 0.2s;
+    }
+    .profi-btn-study { background: #2563eb; color: white; border: none; }
+    .profi-btn-study:hover { background: #1d4ed8; }
+    .profi-btn-eval { background: #16a34a; color: white; border: none; }
+    .profi-btn-eval:hover { background: #15803d; }
   </style>
 </head>
 <body>
   <div class="profi-page">
-    <h1 class="profi-title">Я понимаю профессии</h1>
+    <h1 class="profi-title">ПРОФЕССИИ</h1>
     <ul class="profi-list" id="profi-list"></ul>
-    <p style="margin-top: 24px;">
-      <a href="want.html" class="profi-link" style="display: inline-block;">ОЦЕНИТЬ</a>
-    </p>
   </div>
   <script>
     Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
@@ -35,7 +41,15 @@
         Object.keys(professions).forEach(id => {
           if (cards[id]) {
             const li = document.createElement('li');
-            li.innerHTML = `<a href="card.html?id=${id}" class="profi-link">${num}. ${professions[id]}</a>`;
+            li.innerHTML = `
+              <div class="profi-item">
+                <span class="profi-item-name">${num}. ${professions[id]}</span>
+                <div class="profi-btns">
+                  <a href="card.html?id=${id}" class="profi-btn profi-btn-study" title="Проверить мое понимание профессии">Изучить</a>
+                  <a href="want.html?eval=${id}" class="profi-btn profi-btn-eval" title="Оценить подходит ли профессия для меня">Оценить</a>
+                </div>
+              </div>
+            `;
             ul.appendChild(li);
             num++;
           }

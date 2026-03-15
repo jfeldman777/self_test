@@ -33,19 +33,54 @@
     .fail-block h4 { margin: 0 0 8px 0; font-size: 1rem; }
     .fail-list { margin: 0; padding-left: 20px; }
     .fail-list li { margin: 4px 0; }
+    .eval-target { background: #e0f2fe; padding: 16px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; color: #0369a1; }
+    .hobby-block { background: #f0fdf4; padding: 16px; border-radius: 8px; margin-top: 16px; border-left: 4px solid #16a34a; }
+    .hobby-block h4 { margin: 0 0 8px 0; font-size: 1rem; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: white; padding: 24px; border-radius: 12px; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal h3 { margin: 0 0 16px 0; font-size: 1.1rem; }
+    .modal-close { margin-top: 16px; margin-right: 8px; padding: 8px 16px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .modal-prof { margin-top: 16px; margin-right: 8px; padding: 8px 16px; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .modal-apply { margin-top: 16px; padding: 8px 16px; background: #16a34a; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .sum-list { list-style: none; padding: 0; margin: 0; }
+    .sum-list li { padding: 8px 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+    .sum-list .sum-name { flex: 1; }
+    .sum-list .sum-input { width: 60px; padding: 4px 8px; }
+    .prof-list { list-style: none; padding: 0; margin: 0; }
+    .prof-list li { padding: 6px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
   </style>
 </head>
 <body>
   <div class="want-page">
     <h1 class="want-title">ОЦЕНИТЬ</h1>
-    <p style="margin-bottom: 16px; color: #64748b;">Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.</p>
+    <div id="eval-target" class="eval-target" style="display: none;"></div>
+    <p id="want-desc" style="margin-bottom: 16px; color: #64748b;"></p>
     <div id="want-form"></div>
     <div class="btn-row">
       <button type="button" class="btn btn-primary" id="btn-eval">ОЦЕНИТЬ</button>
+      <button type="button" class="btn btn-secondary" id="btn-extra" style="display: none;">ДОПОЛНИТЕЛЬНО</button>
       <a href="index.html" class="btn btn-secondary">Назад</a>
     </div>
     <div id="results" class="results" style="display: none;"></div>
-    <a href="index.html" class="back-link">← Я понимаю профессии</a>
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+      <div class="modal">
+        <h3>Сумма по позициям</h3>
+        <ul id="modal-sum-list" class="sum-list"></ul>
+        <div>
+          <button type="button" class="modal-apply" id="modal-apply">ИЗМЕНИТЬ</button>
+          <button type="button" class="modal-close" id="modal-close">Закрыть</button>
+          <button type="button" class="modal-prof" id="modal-prof">ПРОФЕССИЯ</button>
+        </div>
+      </div>
+    </div>
+    <div id="prof-modal-overlay" class="modal-overlay" style="display: none;">
+      <div class="modal">
+        <h3 id="prof-modal-title">Параметры профессии</h3>
+        <ul id="prof-modal-list" class="prof-list"></ul>
+        <button type="button" class="modal-close" id="prof-modal-close">Закрыть</button>
+      </div>
+    </div>
+    <a href="index.html" class="back-link">← ПРОФЕССИИ</a>
   </div>
 
   <script>
@@ -53,6 +88,11 @@
     let profiData = null;
     let cardData = null;
     let flatAbilities = [];
+    let lastSum = null;
+    let lastEvalId = null;
+    let lastTarget = null;
+    let overrideSum = null;
+    let radiosAtLastEdit = null;
 
     function buildFlatAbilities() {
       flatAbilities = [];
@@ -61,6 +101,38 @@
           flatAbilities.push({ group: group.name, name: ability });
         });
       });
+    }
+
+    function getCurrentChoices() {
+      const params = new URLSearchParams(location.search);
+      const evalFromUrl = params.get('eval');
+      const professions = profiData.professions;
+      const choices = {};
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id] || (evalFromUrl && id === evalFromUrl)) return;
+        const sel = document.querySelector(`input[name="p${id}"]:checked`);
+        if (sel) choices[id] = sel.value;
+      });
+      return JSON.stringify(choices);
+    }
+
+    function computeSumFromRadios(evalId) {
+      const professions = profiData.professions;
+      const target = flattenCard(cardData[evalId]);
+      if (!target) return null;
+      const sum = new Array(target.length).fill(0);
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id] || id === evalId) return;
+        const sel = document.querySelector(`input[name="p${id}"]:checked`);
+        if (!sel) return;
+        const choice = sel.value;
+        if (choice === 'eval' || choice === 'skip') return;
+        const vals = flattenCard(cardData[id]);
+        if (!vals) return;
+        const sign = choice === 'want' ? 1 : -1;
+        vals.forEach((v, i) => { sum[i] += sign * v; });
+      });
+      return sum;
     }
 
     function flattenCard(cardByGroup) {
@@ -77,20 +149,35 @@
 
     function loadForm() {
       buildFlatAbilities();
+      const params = new URLSearchParams(location.search);
+      const evalFromUrl = params.get('eval');
       const form = document.getElementById('want-form');
+      const targetDiv = document.getElementById('eval-target');
+      const descEl = document.getElementById('want-desc');
       form.innerHTML = '';
       const professions = profiData.professions;
+      const hasEval = evalFromUrl && cardData[evalFromUrl];
+      if (hasEval) {
+        targetDiv.style.display = 'block';
+        targetDiv.textContent = 'Оцениваем: ' + (professions[evalFromUrl] || '');
+        descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / не учитывать.';
+      } else {
+        targetDiv.style.display = 'none';
+        descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.';
+      }
       let num = 1;
       Object.keys(professions).forEach(id => {
         if (!cardData[id]) return;
+        if (hasEval && id === evalFromUrl) return;
         const row = document.createElement('div');
         row.className = 'profi-row';
+        const evalOpt = hasEval ? '' : '<label><input type="radio" name="p' + id + '" value="eval"> оценить</label>';
         row.innerHTML = `
           <span class="profi-name">${num}. ${professions[id]}</span>
           <div class="profi-options">
             <label><input type="radio" name="p${id}" value="want"> хочу</label>
             <label><input type="radio" name="p${id}" value="nowant"> не хочу</label>
-            <label><input type="radio" name="p${id}" value="eval"> оценить</label>
+            ${evalOpt}
             <label><input type="radio" name="p${id}" value="skip" checked> не учитывать</label>
           </div>
         `;
@@ -100,27 +187,38 @@
     }
 
     function evaluate() {
+      const params = new URLSearchParams(location.search);
+      const evalFromUrl = params.get('eval');
       const professions = profiData.professions;
-      const evalIds = [];
+      let evalId = null;
       const choices = {};
-      Object.keys(professions).forEach(id => {
-        if (!cardData[id]) return;
-        const sel = document.querySelector(`input[name="p${id}"]:checked`);
-        if (sel) {
-          choices[id] = sel.value;
-          if (sel.value === 'eval') evalIds.push(id);
+      if (evalFromUrl && cardData[evalFromUrl]) {
+        evalId = evalFromUrl;
+        Object.keys(professions).forEach(id => {
+          if (!cardData[id] || id === evalFromUrl) return;
+          const sel = document.querySelector(`input[name="p${id}"]:checked`);
+          if (sel) choices[id] = sel.value;
+        });
+      } else {
+        const evalIds = [];
+        Object.keys(professions).forEach(id => {
+          if (!cardData[id]) return;
+          const sel = document.querySelector(`input[name="p${id}"]:checked`);
+          if (sel) {
+            choices[id] = sel.value;
+            if (sel.value === 'eval') evalIds.push(id);
+          }
+        });
+        if (evalIds.length === 0) {
+          alert('Выберите одну профессию как «оценить»');
+          return;
         }
-      });
-
-      if (evalIds.length === 0) {
-        alert('Выберите одну профессию как «оценить»');
-        return;
+        if (evalIds.length > 1) {
+          alert('Выберите только одну профессию как «оценить»');
+          return;
+        }
+        evalId = evalIds[0];
       }
-      if (evalIds.length > 1) {
-        alert('Выберите только одну профессию как «оценить»');
-        return;
-      }
-      const evalId = evalIds[0];
 
       const target = flattenCard(cardData[evalId]);
       if (!target) return;
@@ -136,19 +234,50 @@
         vals.forEach((v, i) => { sum[i] += sign * v; count[i]++; });
       });
 
+      lastEvalId = evalId;
+      lastTarget = target;
+      lastSum = sum.slice();
+      overrideSum = null;
+      radiosAtLastEdit = getCurrentChoices();
+      updateResultsFromSum(target, sum, evalId);
+      document.getElementById('btn-extra').style.display = 'inline-block';
+    }
+
+    function dist(a, b) {
+      let s = 0;
+      for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) * (a[i] - b[i]);
+      return Math.sqrt(s);
+    }
+
+    function updateResultsFromSum(target, sum, evalId) {
+      const professions = profiData.professions;
       const nadoNoNet = [];
       const katastrofa = [];
       target.forEach((t, i) => {
         const s = sum[i];
-        const n = count[i] || 1;
-        const numVal = n > 0 ? Math.abs(s) / n : 0;
+        const numVal = Math.abs(s);
         const valStr = numVal.toFixed(2);
         const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
-        if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr });
-        if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr });
+        if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
       });
       nadoNoNet.sort((a, b) => b.val - a.val);
       katastrofa.sort((a, b) => b.val - a.val);
+
+      const residual = new Array(target.length).fill(0);
+      nadoNoNet.forEach(a => { residual[a.idx] = -1; });
+      katastrofa.forEach(a => { residual[a.idx] = 1; });
+
+      const hobbyCandidates = [];
+      Object.keys(professions).forEach(id => {
+        if (!cardData[id] || id === evalId) return;
+        const cand = flattenCard(cardData[id]);
+        if (!cand) return;
+        const d = dist(residual, cand);
+        hobbyCandidates.push({ id, name: professions[id], dist: d });
+      });
+      hobbyCandidates.sort((a, b) => a.dist - b.dist);
+      const topHobbies = hobbyCandidates.slice(0, 2);
 
       const results = document.getElementById('results');
       results.style.display = 'block';
@@ -162,8 +291,76 @@
       if (!nadoNoNet.length && !katastrofa.length) {
         html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
       }
+      if (topHobbies.length) {
+        const hobbyLines = topHobbies.map((h, i) => {
+          const tochnost = h.dist > 0 ? (1 / h.dist).toFixed(2) : '—';
+          return `${i + 1}. <strong>${h.name}</strong> (точность ${tochnost})`;
+        }).join('<br>');
+        html += `<div class="hobby-block"><h4>Наилучшая профессия-хобби</h4><p>${hobbyLines}</p></div>`;
+      }
       results.innerHTML = html;
     }
+
+    function showSumModal() {
+      if (!lastTarget || !lastEvalId || !flatAbilities.length) return;
+      const currentRadios = getCurrentChoices();
+      let sumToShow;
+      if (overrideSum !== null && currentRadios === radiosAtLastEdit) {
+        sumToShow = overrideSum;
+      } else {
+        sumToShow = computeSumFromRadios(lastEvalId);
+        if (sumToShow) lastSum = sumToShow.slice();
+      }
+      if (!sumToShow) return;
+      const ul = document.getElementById('modal-sum-list');
+      ul.innerHTML = sumToShow.map((s, i) => {
+        const name = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
+        return `<li><span class="sum-name">${name}</span><input type="number" class="sum-input" data-idx="${i}" value="${s}" step="any"></li>`;
+      }).join('');
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function applySumChanges() {
+      if (!lastTarget || !lastEvalId) return;
+      const newSum = lastSum.map((v, i) => {
+        const inp = document.querySelector(`.sum-input[data-idx="${i}"]`);
+        const val = inp ? parseFloat(inp.value) : v;
+        return isNaN(val) ? v : val;
+      });
+      lastSum = newSum.slice();
+      overrideSum = newSum.slice();
+      radiosAtLastEdit = getCurrentChoices();
+      document.getElementById('modal-overlay').style.display = 'none';
+      updateResultsFromSum(lastTarget, newSum, lastEvalId);
+    }
+
+    function showProfModal() {
+      if (!lastTarget || !lastEvalId || !flatAbilities.length) return;
+      const professions = profiData.professions;
+      const profName = professions[lastEvalId] || 'Профессия';
+      document.getElementById('prof-modal-title').textContent = 'Параметры профессии: ' + profName;
+      const ul = document.getElementById('prof-modal-list');
+      ul.innerHTML = lastTarget.map((v, i) => {
+        const name = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
+        return `<li><span>${name}</span><span>${v}</span></li>`;
+      }).join('');
+      document.getElementById('prof-modal-overlay').style.display = 'flex';
+    }
+
+    document.getElementById('modal-close').addEventListener('click', () => {
+      document.getElementById('modal-overlay').style.display = 'none';
+    });
+    document.getElementById('modal-apply').addEventListener('click', applySumChanges);
+    document.getElementById('modal-prof').addEventListener('click', showProfModal);
+    document.getElementById('prof-modal-close').addEventListener('click', () => {
+      document.getElementById('prof-modal-overlay').style.display = 'none';
+    });
+    document.getElementById('prof-modal-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'prof-modal-overlay') document.getElementById('prof-modal-overlay').style.display = 'none';
+    });
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-overlay') document.getElementById('modal-overlay').style.display = 'none';
+    });
 
     Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
       .then(([profi, cards]) => {
@@ -174,6 +371,7 @@
       .catch(() => document.getElementById('want-form').innerHTML = '<p>Ошибка загрузки</p>');
 
     document.getElementById('btn-eval').addEventListener('click', evaluate);
+    document.getElementById('btn-extra').addEventListener('click', showSumModal);
   </script>
 </body>
 </html>
