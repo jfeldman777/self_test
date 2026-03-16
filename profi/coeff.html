@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Коэффициенты по странам</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .coeff-page { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
+    .coeff-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
+    .coeff-table { width: 100%; border-collapse: collapse; }
+    .coeff-table th, .coeff-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    .coeff-table th { background: #f1f5f9; font-weight: 600; }
+    .coeff-table input { width: 70px; padding: 6px 8px; }
+    .btn-save { margin-top: 20px; padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #15803d; }
+    .coeff-hint { font-size: 0.85rem; color: #64748b; margin-bottom: 16px; }
+    .country-select { margin-bottom: 16px; padding: 8px 12px; min-width: 180px; }
+    .market-banner { margin-bottom: 12px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-size: 0.9rem; }
+    .market-banner a { color: #0369a1; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="coeff-page">
+    <a href="index.html" class="home-link">На главную страницу</a>
+    <div id="market-banner" class="market-banner"></div>
+    <h1 class="coeff-title">Коэффициенты по странам</h1>
+    <p class="coeff-hint">Множитель для каждой профессии (0.2–1.0). Корректирует рыночную оценку с учётом локального рынка. Для новых профессий используется default или 1.0.</p>
+    <select id="country-select" class="country-select">
+      <option value="Russia">Россия</option>
+      <option value="Israel">Израиль</option>
+      <option value="USA">США</option>
+    </select>
+    <table class="coeff-table" id="coeff-table"></table>
+    <button type="button" class="btn-save" id="btn-save">Сохранить</button>
+  </div>
+  <script>
+    const STORAGE_KEY = 'profiCoeffOverrides';
+
+    function loadOverrides() {
+      try {
+        const s = localStorage.getItem(STORAGE_KEY);
+        return s ? JSON.parse(s) : {};
+      } catch (e) { return {}; }
+    }
+
+    function saveOverrides(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function getCoeff(marketData, overrides, country, id) {
+      const countryData = overrides[country] || marketData?.[country] || {};
+      const defaultData = overrides.default || marketData?.default || {};
+      return countryData[id] ?? defaultData[id] ?? 1.0;
+    }
+
+    function loadTable(profi, marketData, country) {
+      const overrides = loadOverrides();
+      const professions = profi.professions;
+      const ids = Object.keys(professions).sort((a, b) => {
+        const na = typeof professions[a] === 'string' ? professions[a] : professions[a].name;
+        const nb = typeof professions[b] === 'string' ? professions[b] : professions[b].name;
+        return na.localeCompare(nb, 'ru');
+      });
+
+      const tbody = ids.map(id => {
+        const p = professions[id];
+        const name = typeof p === 'string' ? p : p.name;
+        const val = getCoeff(marketData, overrides, country, id);
+        return `<tr data-id="${id}">
+          <td>${name}</td>
+          <td><input type="number" min="0.2" max="1" step="0.01" value="${val}" data-field="coeff"></td>
+        </tr>`;
+      }).join('');
+
+      document.getElementById('coeff-table').innerHTML = `
+        <thead><tr><th>Профессия</th><th>Коэффициент (0.2–1.0)</th></tr></thead>
+        <tbody>${tbody}</tbody>
+      `;
+    }
+
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('market.json').then(r => r.json())])
+      .then(([profi, marketData]) => {
+        const countrySelect = document.getElementById('country-select');
+        const urlCountry = new URLSearchParams(location.search).get('country');
+        if (urlCountry) countrySelect.value = urlCountry;
+
+        function refresh() {
+          loadTable(profi, marketData, countrySelect.value);
+        }
+        refresh();
+        countrySelect.addEventListener('change', refresh);
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+          const country = countrySelect.value;
+          const overrides = loadOverrides();
+          if (!overrides[country]) overrides[country] = {};
+          document.querySelectorAll('#coeff-table tbody tr').forEach(tr => {
+            const id = tr.dataset.id;
+            const v = parseFloat(tr.querySelector('[data-field="coeff"]').value);
+            overrides[country][id] = Math.max(0.2, Math.min(1.0, isNaN(v) ? 1.0 : v));
+          });
+          saveOverrides(overrides);
+          alert('Сохранено.');
+        });
+      })
+      .catch(() => document.getElementById('coeff-table').innerHTML = '<tr><td colspan="2">Ошибка загрузки</td></tr>');
+
+    (function() {
+      function updateBanner() {
+        const m = localStorage.getItem('profiMarketMode') || 'none';
+        const c = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const names = { Russia: 'Россия', Israel: 'Израиль', USA: 'США' };
+        const texts = { none: 'Рынок: востребованность не учитывать', country: 'Рынок: ' + (names[c] || c), manual: 'Рынок: востребованность ввести самому' };
+        const el = document.getElementById('market-banner');
+        if (el) el.innerHTML = '<a href="market.html">' + (texts[m] || texts.none) + '</a>';
+      }
+      updateBanner();
+      window.addEventListener('pageshow', updateBanner);
+    })();
+  </script>
+</body>
+</html>

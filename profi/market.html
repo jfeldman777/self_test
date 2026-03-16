@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рынок</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .market-page { max-width: 600px; margin: 0 auto; padding: 40px 20px; }
+    .market-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .market-options { margin: 16px 0; }
+    .market-options label { display: block; margin: 12px 0; cursor: pointer; }
+    .market-options input { margin-right: 8px; }
+    .market-country { margin-left: 28px; margin-top: 8px; }
+    .market-country select { padding: 8px 12px; min-width: 180px; }
+    .btn-save { margin-top: 24px; padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+    .btn-save:hover { background: #15803d; }
+    .manual-link { color: #2563eb; }
+    .market-banner { margin-bottom: 12px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-size: 0.9rem; }
+    .market-banner a { color: #0369a1; font-weight: 500; }
+    .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="market-page">
+    <a href="index.html" class="home-link">На главную страницу</a>
+    <div id="market-banner" class="market-banner"></div>
+    <h1 class="market-title">Рынок</h1>
+    <p>Выберите, как учитывать востребованность профессий:</p>
+    <div class="market-options">
+      <label><input type="radio" name="market" value="none"> Востребованность не учитывать</label>
+      <label><input type="radio" name="market" value="country"> Страна:
+        <div class="market-country">
+          <select id="country-select">
+            <option value="Russia">Россия</option>
+            <option value="Israel">Израиль</option>
+            <option value="USA">США</option>
+          </select>
+          <a href="coeff.html" style="margin-left:12px;">Редактировать коэффициенты</a>
+        </div>
+      </label>
+      <label><input type="radio" name="market" value="manual"> Востребованность ввести самому (<a href="status.html" class="manual-link">страница ввода</a>)</label>
+    </div>
+    <button type="button" class="btn-save" id="btn-save">Сохранить</button>
+  </div>
+  <script>
+    const STORAGE_KEY = 'profiMarketMode';
+    const COUNTRY_KEY = 'profiMarketCountry';
+
+    function load() {
+      const mode = localStorage.getItem(STORAGE_KEY) || 'none';
+      const country = localStorage.getItem(COUNTRY_KEY) || 'Russia';
+      document.querySelector(`input[name="market"][value="${mode}"]`).checked = true;
+      document.getElementById('country-select').value = country;
+    }
+
+    document.getElementById('btn-save').addEventListener('click', () => {
+      const mode = document.querySelector('input[name="market"]:checked').value;
+      const country = document.getElementById('country-select').value;
+      localStorage.setItem(STORAGE_KEY, mode);
+      localStorage.setItem(COUNTRY_KEY, country);
+      alert('Сохранено.');
+      location.href = 'index.html';
+    });
+
+    load();
+    (function() {
+      function updateBanner() {
+        const m = localStorage.getItem('profiMarketMode') || 'none';
+        const c = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const names = { Russia: 'Россия', Israel: 'Израиль', USA: 'США' };
+        const texts = { none: 'Рынок: востребованность не учитывать', country: 'Рынок: ' + (names[c] || c), manual: 'Рынок: востребованность ввести самому' };
+        const el = document.getElementById('market-banner');
+        if (el) el.innerHTML = '<a href="market.html">' + (texts[m] || texts.none) + '</a>';
+      }
+      updateBanner();
+      window.addEventListener('pageshow', updateBanner);
+    })();
+  </script>
+</body>
+</html>

@@ -10,6 +10,8 @@
     .help-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 24px; color: #1a365d; }
     .back-link { display: inline-block; margin-bottom: 24px; color: #2563eb; text-decoration: none; font-weight: 500; }
     .back-link:hover { text-decoration: underline; }
+    .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
     .help-page h2 { font-size: 1.1rem; margin: 20px 0 12px 0; color: #1a365d; }
     .help-page ul { margin: 0; padding-left: 24px; line-height: 1.7; }
     .help-page a { color: #2563eb; }
@@ -17,7 +19,7 @@
 </head>
 <body>
   <div class="help-page">
-    <a href="index.html" class="back-link">← Назад к профессиям</a>
+    <a href="index.html" class="home-link">На главную страницу</a>
     <h1 class="help-title">Как это работает</h1>
     <p><strong>Программа «Профессии и хобби»</strong> предназначена для молодых людей, которые выбирают профессию.</p>
     <h2>Общий принцип работы</h2>
@@ -25,12 +27,9 @@
       <li>Система знает некоторый список профессий.</li>
       <li>Вы можете выяснить, какие свойства человека нужны для данной профессии.</li>
       <li>Вы можете оценить любую профессию для себя.</li>
-      <li>Вы можете выяснить, какая профессия для вас лучшая на фоне общественного статуса и зарплаты каждой профессии — 
-        но тут вам сначала придётся этот статус и зарплату ввести (есть <a href="status.html">отдельная страница</a>).</li>
-    
-    (Чтобы рейтинг статусов и зарплат отражал текущее положение дел в экономке,
-      его нужно отдельно исследовать и периодически обновлять.)
+      <li>Вы можете выяснить, какая профессия для вас лучшая с учётом востребованности. Итог = базовый показатель (0–100) × коэффициент страны (0.2–1.0). Выбрать страну, ручной ввод или «не учитывать» — на <a href="market.html">странице Рынок</a>. Редактировать базовые показатели (<a href="status.html">Востребованность</a>) и коэффициенты по странам (<a href="coeff.html">Коэффициенты</a>).</li>
     </ul>
+    <p></p>
     <p>Профессии оцениваются по тому, что они требуют от человека.
        Если вы выбираете определённую профессию — значит у вас 
        на эти потребности есть способности 

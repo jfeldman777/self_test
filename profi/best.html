@@ -33,13 +33,18 @@
     .hobby-block h4 { margin: 0 0 8px 0; font-size: 1rem; }
     .home-link { display: inline-block; margin-top: 20px; color: #2563eb; text-decoration: none; font-weight: 500; }
     .home-link:hover { text-decoration: underline; }
+    .market-banner { margin-bottom: 12px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-size: 0.9rem; }
+    .market-banner a { color: #0369a1; font-weight: 500; }
+    .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="best-page">
-    <a href="index.html" class="back-link">← Назад к профессиям</a>
+    <a href="index.html" class="home-link">На главную страницу</a>
+    <div id="market-banner" class="market-banner"></div>
     <h1 class="best-title">ЛУЧШАЯ ПРОФЕССИЯ</h1>
-    <p class="best-desc">Выберите для каждой профессии: хочу / не хочу / не учитывать. Алгоритм найдёт лучший вариант с учётом статуса и зарплаты.</p>
+    <p class="best-desc">Выберите для каждой профессии: хочу / не хочу / не учитывать. Алгоритм найдёт лучший вариант с учётом востребованности.</p>
     <div id="best-form"></div>
     <div class="btn-row">
       <button type="button" class="btn btn-primary" id="btn-find">Найти лучшую</button>
@@ -52,6 +57,7 @@
     const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
     let profiData = null;
     let cardData = null;
+    let marketData = null;
     let flatAbilities = [];
 
     function mergeProfi(profi) {
@@ -60,8 +66,7 @@
         const overrides = s ? JSON.parse(s) : {};
         Object.keys(overrides).forEach(id => {
           if (profi.professions[id] && typeof profi.professions[id] === 'object') {
-            profi.professions[id].status = overrides[id].status ?? profi.professions[id].status;
-            profi.professions[id].salary = overrides[id].salary ?? profi.professions[id].salary;
+            profi.professions[id].market_score = overrides[id].market_score ?? profi.professions[id].market_score;
           }
         });
       } catch (e) {}
@@ -127,10 +132,22 @@
       const firstSum = (nadoNoNet.reduce((a, b) => a + b.val, 0) + katastrofa.reduce((a, b) => a + b.val, 0));
       const secondSum = sum.reduce((acc, s, i) => problemIndices.has(i) ? acc : acc + s, 0);
 
+      const mode = localStorage.getItem('profiMarketMode') || 'none';
       const p = professions[evalId];
-      const status = typeof p === 'object' ? (p.status ?? 5) : 5;
-      const salary = typeof p === 'object' ? (p.salary ?? 50) : 50;
-      const mult = status * salary;
+      const market_score = typeof p === 'object' ? (p.market_score ?? 50) : 50;
+      const ms = (typeof market_score === 'number' && market_score <= 1) ? market_score * 100 : market_score;
+      let mult = 1;
+      if (mode === 'country') {
+        const country = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const coeffOverrides = (() => { try { const s = localStorage.getItem('profiCoeffOverrides'); return s ? JSON.parse(s) : {}; } catch (e) { return {}; } })();
+        const countryData = coeffOverrides[country] || marketData?.[country] || marketData?.default || {};
+        const defaultData = coeffOverrides.default || marketData?.default || {};
+        let country_coeff = countryData[evalId] ?? defaultData[evalId] ?? 1.0;
+        country_coeff = Math.max(0.2, Math.min(1.0, country_coeff));
+        mult = ms * country_coeff;
+      } else if (mode === 'manual') {
+        mult = ms;
+      }
 
       const firstWeighted = firstSum * mult;
       const secondWeighted = secondSum * mult;
@@ -149,7 +166,10 @@
       hobbyCandidates.sort((a, b) => a.dist - b.dist);
       const topHobbies = hobbyCandidates.slice(0, 2);
 
-      return { delta, name: getName(professions[evalId]), status, salary, nadoNoNet, katastrofa, topHobbies };
+      let msDisplay = '—';
+      if (mode === 'country') msDisplay = mult;
+      else if (mode === 'manual') msDisplay = mult;
+      return { delta, name: getName(professions[evalId]), market_score: msDisplay, nadoNoNet, katastrofa, topHobbies };
     }
 
     function loadForm() {
@@ -200,7 +220,8 @@
       if (bestRes) {
         const profName = (bestRes.name || '').toUpperCase();
         let html = `<h3>Лучшая профессия для вас: <span class="prof-name">${profName}</span></h3>`;
-        html += `<p>СТАТУС: ${bestRes.status} &nbsp; Зарплата: ${bestRes.salary}</p>`;
+        const mode = localStorage.getItem('profiMarketMode') || 'none';
+        if (mode !== 'none') html += `<p>Востребованность: ${bestRes.market_score}</p>`;
         if (bestRes.nadoNoNet.length) {
           html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${bestRes.nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
         }
@@ -226,15 +247,32 @@
       }
     }
 
-    Promise.all([fetch('profi.json').then(r => r.json()).then(mergeProfi), fetch('card.json').then(r => r.json())])
-      .then(([profi, cards]) => {
+    Promise.all([
+      fetch('profi.json').then(r => r.json()).then(mergeProfi),
+      fetch('card.json').then(r => r.json()),
+      fetch('market.json').then(r => r.json()).catch(() => ({}))
+    ])
+      .then(([profi, cards, market]) => {
         profiData = profi;
         cardData = cards;
+        marketData = market;
         loadForm();
       })
       .catch(() => document.getElementById('best-form').innerHTML = '<p>Ошибка загрузки</p>');
 
     document.getElementById('btn-find').addEventListener('click', findBest);
+    (function() {
+      function updateBanner() {
+        const m = localStorage.getItem('profiMarketMode') || 'none';
+        const c = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const names = { Russia: 'Россия', Israel: 'Израиль', USA: 'США' };
+        const texts = { none: 'Рынок: востребованность не учитывать', country: 'Рынок: ' + (names[c] || c), manual: 'Рынок: востребованность ввести самому' };
+        const el = document.getElementById('market-banner');
+        if (el) el.innerHTML = '<a href="market.html">' + (texts[m] || texts.none) + '</a>';
+      }
+      updateBanner();
+      window.addEventListener('pageshow', updateBanner);
+    })();
   </script>
 </body>
 </html>

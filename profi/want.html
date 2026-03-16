@@ -50,10 +50,16 @@
     .sum-list .sum-input { width: 60px; padding: 4px 8px; }
     .prof-list { list-style: none; padding: 0; margin: 0; }
     .prof-list li { padding: 6px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+    .market-banner { margin-bottom: 12px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-size: 0.9rem; }
+    .market-banner a { color: #0369a1; font-weight: 500; }
+    .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="want-page">
+    <a href="index.html" class="home-link">На главную страницу</a>
+    <div id="market-banner" class="market-banner"></div>
     <h1 class="want-title">ОЦЕНИТЬ</h1>
     <div id="eval-target" class="eval-target" style="display: none;"></div>
     <p id="want-desc" style="margin-bottom: 16px; color: #64748b;"></p>
@@ -371,8 +377,7 @@
         const overrides = s ? JSON.parse(s) : {};
         Object.keys(overrides).forEach(id => {
           if (profi.professions[id] && typeof profi.professions[id] === 'object') {
-            profi.professions[id].status = overrides[id].status ?? profi.professions[id].status;
-            profi.professions[id].salary = overrides[id].salary ?? profi.professions[id].salary;
+            profi.professions[id].market_score = overrides[id].market_score ?? profi.professions[id].market_score;
           }
         });
       } catch (e) {}
@@ -388,6 +393,18 @@
 
     document.getElementById('btn-eval').addEventListener('click', evaluate);
     document.getElementById('btn-extra').addEventListener('click', showSumModal);
+    (function() {
+      function updateBanner() {
+        const m = localStorage.getItem('profiMarketMode') || 'none';
+        const c = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const names = { Russia: 'Россия', Israel: 'Израиль', USA: 'США' };
+        const texts = { none: 'Рынок: востребованность не учитывать', country: 'Рынок: ' + (names[c] || c), manual: 'Рынок: востребованность ввести самому' };
+        const el = document.getElementById('market-banner');
+        if (el) el.innerHTML = '<a href="market.html">' + (texts[m] || texts.none) + '</a>';
+      }
+      updateBanner();
+      window.addEventListener('pageshow', updateBanner);
+    })();
   </script>
 </body>
 </html>

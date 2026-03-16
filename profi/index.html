@@ -27,11 +27,14 @@
     .profi-btn-study:hover { background: #1d4ed8; }
     .profi-btn-eval { background: #16a34a; color: white; border: none; }
     .profi-btn-eval:hover { background: #15803d; }
+    .market-banner { margin-bottom: 12px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-size: 0.9rem; }
+    .market-banner a { color: #0369a1; font-weight: 500; }
   </style>
 </head>
 <body>
   <div class="profi-page">
-    <h1 class="profi-title">ПРОФЕССИИ — <a href="help.html">Как это работает</a> — <a href="status.html">Статус и зарплата</a> — <a href="best.html">ЛУЧШАЯ ПРОФЕССИЯ</a></h1>
+    <div id="market-banner" class="market-banner"></div>
+    <h1 class="profi-title">ПРОФЕССИИ — <a href="help.html">Как это работает</a> — <a href="market.html">Рынок</a> — <a href="best.html">ЛУЧШАЯ ПРОФЕССИЯ</a></h1>
     <ul class="profi-list" id="profi-list"></ul>
   </div>
   <script>
@@ -42,8 +45,7 @@
         const overrides = s ? JSON.parse(s) : {};
         Object.keys(overrides).forEach(id => {
           if (profi.professions[id] && typeof profi.professions[id] === 'object') {
-            profi.professions[id].status = overrides[id].status ?? profi.professions[id].status;
-            profi.professions[id].salary = overrides[id].salary ?? profi.professions[id].salary;
+            profi.professions[id].market_score = overrides[id].market_score ?? profi.professions[id].market_score;
           }
         });
       } catch (e) {}
@@ -72,6 +74,18 @@
         });
       })
       .catch(() => document.getElementById('profi-list').innerHTML = '<li>Ошибка загрузки</li>');
+    (function() {
+      function updateBanner() {
+        const m = localStorage.getItem('profiMarketMode') || 'none';
+        const c = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const names = { Russia: 'Россия', Israel: 'Израиль', USA: 'США' };
+        const texts = { none: 'Рынок: востребованность не учитывать', country: 'Рынок: ' + (names[c] || c), manual: 'Рынок: востребованность ввести самому' };
+        const el = document.getElementById('market-banner');
+        if (el) el.innerHTML = '<a href="market.html">' + (texts[m] || texts.none) + '</a>';
+      }
+      updateBanner();
+      window.addEventListener('pageshow', updateBanner);
+    })();
   </script>
 </body>
 </html>

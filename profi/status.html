@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Статус и зарплата</title>
+  <title>Востребованность</title>
   <link rel="stylesheet" href="../style.css">
   <style>
     .status-page { max-width: 700px; margin: 0 auto; padding: 40px 20px; }
@@ -17,13 +17,18 @@
     .btn-save { margin-top: 20px; padding: 12px 24px; background: #16a34a; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
     .btn-save:hover { background: #15803d; }
     .status-hint { font-size: 0.85rem; color: #64748b; margin-bottom: 16px; }
+    .market-banner { margin-bottom: 12px; padding: 8px 12px; background: #e0f2fe; border-radius: 6px; font-size: 0.9rem; }
+    .market-banner a { color: #0369a1; font-weight: 500; }
+    .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
+    .home-link:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <div class="status-page">
-    <a href="index.html" class="back-link">← Назад к профессиям</a>
-    <h1 class="status-title">Статус и зарплата</h1>
-    <p class="status-hint">Статус: 1–10 (насколько трудно попасть в профессию). Зарплата: 0–100.</p>
+    <a href="index.html" class="home-link">На главную страницу</a>
+    <div id="market-banner" class="market-banner"></div>
+    <h1 class="status-title">Востребованность</h1>
+    <p class="status-hint">Базовый показатель (market_score): 0–100. Отражает общую рыночную привлекательность профессии.</p>
     <table class="status-table" id="status-table"></table>
     <button type="button" class="btn-save" id="btn-save">Сохранить</button>
   </div>
@@ -45,11 +50,8 @@
       const overrides = loadOverrides();
       const professions = profi.professions;
       Object.keys(overrides).forEach(id => {
-        if (professions[id]) {
-          if (typeof professions[id] === 'object') {
-            professions[id].status = overrides[id].status ?? professions[id].status;
-            professions[id].salary = overrides[id].salary ?? professions[id].salary;
-          }
+        if (professions[id] && typeof professions[id] === 'object') {
+          professions[id].market_score = overrides[id].market_score ?? professions[id].market_score;
         }
       });
       return profi;
@@ -68,17 +70,16 @@
         const tbody = ids.map(id => {
           const p = professions[id];
           const name = typeof p === 'string' ? p : p.name;
-          const status = typeof p === 'object' ? (p.status ?? 5) : 5;
-          const salary = typeof p === 'object' ? (p.salary ?? 50) : 50;
+          const ms = typeof p === 'object' ? (p.market_score ?? 50) : 50;
+          const v = (typeof ms === 'number' && ms <= 1) ? ms * 100 : ms;
           return `<tr data-id="${id}">
             <td>${name}</td>
-            <td><input type="number" min="1" max="10" value="${status}" data-field="status"></td>
-            <td><input type="number" min="0" max="100" value="${salary}" data-field="salary"></td>
+            <td><input type="number" min="0" max="100" step="1" value="${v}" data-field="market_score"></td>
           </tr>`;
         }).join('');
 
         document.getElementById('status-table').innerHTML = `
-          <thead><tr><th>Профессия</th><th>Статус (1–10)</th><th>Зарплата (0–100)</th></tr></thead>
+          <thead><tr><th>Профессия</th><th>market_score (0–100)</th></tr></thead>
           <tbody>${tbody}</tbody>
         `;
 
@@ -86,15 +87,26 @@
           const overrides = {};
           document.querySelectorAll('#status-table tbody tr').forEach(tr => {
             const id = tr.dataset.id;
-            const status = parseInt(tr.querySelector('[data-field="status"]').value, 10);
-            const salary = parseInt(tr.querySelector('[data-field="salary"]').value, 10);
-            overrides[id] = { status: Math.max(1, Math.min(10, status)), salary: Math.max(0, Math.min(100, salary)) };
+            const v = parseFloat(tr.querySelector('[data-field="market_score"]').value);
+            overrides[id] = { market_score: Math.max(0, Math.min(100, isNaN(v) ? 50 : v)) };
           });
           saveOverrides(overrides);
           alert('Сохранено. Изменения применятся при следующей загрузке страниц.');
         });
       })
-      .catch(() => document.getElementById('status-table').innerHTML = '<tr><td colspan="3">Ошибка загрузки</td></tr>');
+      .catch(() => document.getElementById('status-table').innerHTML = '<tr><td colspan="2">Ошибка загрузки</td></tr>');
+    (function() {
+      function updateBanner() {
+        const m = localStorage.getItem('profiMarketMode') || 'none';
+        const c = localStorage.getItem('profiMarketCountry') || 'Russia';
+        const names = { Russia: 'Россия', Israel: 'Израиль', USA: 'США' };
+        const texts = { none: 'Рынок: востребованность не учитывать', country: 'Рынок: ' + (names[c] || c), manual: 'Рынок: востребованность ввести самому' };
+        const el = document.getElementById('market-banner');
+        if (el) el.innerHTML = '<a href="market.html">' + (texts[m] || texts.none) + '</a>';
+      }
+      updateBanner();
+      window.addEventListener('pageshow', updateBanner);
+    })();
   </script>
 </body>
 </html>
