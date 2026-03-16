@@ -12,7 +12,8 @@
       display: flex; align-items: center; gap: 16px; padding: 12px 0;
       border-bottom: 1px solid #e2e8f0; flex-wrap: wrap;
     }
-    .profi-row-child { margin-left: 24px; border-left: 3px solid #cbd5e1; padding-left: 12px; }
+    .profi-row-child { position: relative; margin-left: 14px; padding-left: 8px; }
+    .profi-row-child::before { content: ''; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 2px; background: #94a3b8; border-radius: 1px; }
     .profi-name { flex: 1; min-width: 180px; font-weight: 500; }
     .profi-options { display: flex; gap: 16px; }
     .profi-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
