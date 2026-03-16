@@ -14,6 +14,7 @@
     }
     .profi-row-child { position: relative; margin-left: 14px; padding-left: 8px; }
     .profi-row-child::before { content: ''; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 2px; background: #94a3b8; border-radius: 1px; }
+    .profi-eval-label { color: #64748b; font-style: italic; }
     .profi-name { flex: 1; min-width: 180px; font-weight: 500; }
     .profi-options { display: flex; gap: 16px; }
     .profi-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
@@ -200,23 +201,30 @@
         targetDiv.style.display = 'none';
         descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.';
       }
-      const ids = Object.keys(professions).filter(id => cardData[id] && (!hasEval || id !== evalFromUrl));
+      const ids = Object.keys(professions).filter(id => cardData[id]);
       const treeIds = getTreeOrderIds(professions, ids);
       let num = 1;
       treeIds.forEach(id => {
         const p = professions[id];
         const isChild = p && p.parent && ids.includes(p.parent);
+        const isEvalTarget = hasEval && id === evalFromUrl;
         const row = document.createElement('div');
         row.className = 'profi-row' + (isChild ? ' profi-row-child' : '');
-        const evalOpt = hasEval ? '' : '<label><input type="radio" name="p' + id + '" value="eval"> оценить</label>';
-        row.innerHTML = `
-          <span class="profi-name">${num}. ${getName(professions[id])}</span>
-          <div class="profi-options">
+        let optionsHtml;
+        if (isEvalTarget) {
+          optionsHtml = '<span class="profi-eval-label">Оцениваем</span>';
+        } else {
+          const evalOpt = hasEval ? '' : '<label><input type="radio" name="p' + id + '" value="eval"> оценить</label>';
+          optionsHtml = `
             <label><input type="radio" name="p${id}" value="want"> хочу</label>
             <label><input type="radio" name="p${id}" value="nowant"> не хочу</label>
             ${evalOpt}
             <label><input type="radio" name="p${id}" value="skip" checked> не учитывать</label>
-          </div>
+          `;
+        }
+        row.innerHTML = `
+          <span class="profi-name">${num}. ${getName(professions[id])}</span>
+          <div class="profi-options">${optionsHtml}</div>
         `;
         form.appendChild(row);
         num++;
