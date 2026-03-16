@@ -12,6 +12,7 @@
       display: flex; align-items: center; gap: 16px; padding: 12px 0;
       border-bottom: 1px solid #e2e8f0; flex-wrap: wrap;
     }
+    .profi-row-child { margin-left: 24px; border-left: 3px solid #cbd5e1; padding-left: 12px; }
     .profi-name { flex: 1; min-width: 180px; font-weight: 500; }
     .profi-options { display: flex; gap: 16px; }
     .profi-options label { cursor: pointer; display: flex; align-items: center; gap: 6px; }
@@ -151,11 +152,33 @@
       profiData.abilityGroups.forEach(group => {
         if (EXCLUDE_GROUPS.includes(group.name)) return;
         group.abilities.forEach(ability => {
-          const groupData = cardByGroup[group.name];
-          flat.push(groupData && groupData[ability] !== undefined ? groupData[ability] : 0);
+          const raw = cardByGroup[group.name]?.[ability];
+          const num = Number(raw);
+          flat.push(!Number.isNaN(num) ? num : 0);
         });
       });
       return flat;
+    }
+
+    function getTreeOrderIds(professions, ids) {
+      const byParent = {};
+      ids.forEach(id => {
+        const p = professions[id];
+        const parentId = (p && typeof p === 'object') ? p.parent : null;
+        const parent = (parentId && ids.includes(parentId)) ? parentId : null;
+        if (!byParent[parent]) byParent[parent] = [];
+        byParent[parent].push(id);
+      });
+      Object.keys(byParent).forEach(k => byParent[k].sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru')));
+      const result = [];
+      function walk(parentId) {
+        (byParent[parentId] || []).forEach(id => {
+          result.push(id);
+          walk(id);
+        });
+      }
+      walk(null);
+      return result;
     }
 
     function loadForm() {
@@ -176,11 +199,14 @@
         targetDiv.style.display = 'none';
         descEl.textContent = 'Выберите для каждой профессии: хочу / не хочу / оценить / не учитывать. Одна профессия должна быть «оценить» — по ней сравним.';
       }
-      const ids = Object.keys(professions).filter(id => cardData[id] && (!hasEval || id !== evalFromUrl)).sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru'));
+      const ids = Object.keys(professions).filter(id => cardData[id] && (!hasEval || id !== evalFromUrl));
+      const treeIds = getTreeOrderIds(professions, ids);
       let num = 1;
-      ids.forEach(id => {
+      treeIds.forEach(id => {
+        const p = professions[id];
+        const isChild = p && p.parent && ids.includes(p.parent);
         const row = document.createElement('div');
-        row.className = 'profi-row';
+        row.className = 'profi-row' + (isChild ? ' profi-row-child' : '');
         const evalOpt = hasEval ? '' : '<label><input type="radio" name="p' + id + '" value="eval"> оценить</label>';
         row.innerHTML = `
           <span class="profi-name">${num}. ${getName(professions[id])}</span>

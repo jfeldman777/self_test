@@ -32,7 +32,9 @@
   ],
   "professions": {
     "1": { "name": "Художник за холстом", "market_score": 50 },
-    "2": { "name": "Водитель автобуса", "market_score": 50 },
+    "24": { "name": "Водитель", "market_score": 50 },
+    "2": { "name": "Водитель автобуса", "market_score": 50, "parent": "24" },
+    "25": { "name": "Водитель такси", "market_score": 50, "parent": "24" },
     "3": { "name": "Дирижер в оркестре", "market_score": 50 },
     "4": { "name": "Виолончелист в оркестре", "market_score": 50 },
     "5": { "name": "Учитель начальной школы", "market_score": 50 },

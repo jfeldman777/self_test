@@ -18,6 +18,7 @@
       flex-wrap: wrap;
     }
     .profi-item-name { font-weight: 500; flex: 1; min-width: 180px; }
+    .profi-item-child { margin-left: 24px; border-left: 3px solid #cbd5e1; padding-left: 12px; }
     .profi-btns { display: flex; gap: 8px; }
     .profi-btn {
       padding: 8px 16px; border-radius: 6px; font-weight: 500; text-decoration: none;
@@ -51,17 +52,42 @@
       } catch (e) {}
       return profi;
     }
+    function getTreeOrderIds(professions, ids) {
+      const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
+      const byParent = {};
+      ids.forEach(id => {
+        const p = professions[id];
+        const parentId = (p && typeof p === 'object') ? p.parent : null;
+        const parent = (parentId && ids.includes(parentId)) ? parentId : null;
+        if (!byParent[parent]) byParent[parent] = [];
+        byParent[parent].push(id);
+      });
+      Object.keys(byParent).forEach(k => byParent[k].sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru')));
+      const result = [];
+      function walk(parentId) {
+        (byParent[parentId] || []).forEach(id => {
+          result.push(id);
+          walk(id);
+        });
+      }
+      walk(null);
+      return result;
+    }
+
     Promise.all([fetch('profi.json').then(r => r.json()).then(mergeProfi), fetch('card.json').then(r => r.json())])
       .then(([profi, cards]) => {
         const ul = document.getElementById('profi-list');
         const professions = profi.professions;
         const getName = p => typeof p === 'string' ? p : p.name;
-        const ids = Object.keys(professions).filter(id => cards[id]).sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru'));
+        const ids = Object.keys(professions).filter(id => cards[id]);
+        const treeIds = getTreeOrderIds(professions, ids);
         let num = 1;
-        ids.forEach(id => {
+        treeIds.forEach(id => {
+            const p = professions[id];
+            const isChild = p && p.parent && ids.includes(p.parent);
             const li = document.createElement('li');
             li.innerHTML = `
-              <div class="profi-item">
+              <div class="profi-item ${isChild ? 'profi-item-child' : ''}">
                 <span class="profi-item-name">${num}. ${getName(professions[id])}</span>
                 <div class="profi-btns">
                   <a href="card.html?id=${id}" class="profi-btn profi-btn-study" title="Проверить мое понимание профессии">Изучить</a>

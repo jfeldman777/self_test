@@ -69,8 +69,9 @@
       const flat = [];
       profiData.abilityGroups.forEach(group => {
         group.abilities.forEach(ability => {
-          const groupData = cardByGroup[group.name];
-          flat.push(groupData && groupData[ability] !== undefined ? groupData[ability] : 0);
+          const raw = cardByGroup[group.name]?.[ability];
+          const num = Number(raw);
+          flat.push(!Number.isNaN(num) ? num : 0);
         });
       });
       return flat;

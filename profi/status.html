@@ -57,17 +57,36 @@
       return profi;
     }
 
+    function getTreeOrderIds(professions, ids) {
+      const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
+      const byParent = {};
+      ids.forEach(id => {
+        const p = professions[id];
+        const parentId = (p && typeof p === 'object') ? p.parent : null;
+        const parent = (parentId && ids.includes(parentId)) ? parentId : null;
+        if (!byParent[parent]) byParent[parent] = [];
+        byParent[parent].push(id);
+      });
+      Object.keys(byParent).forEach(k => byParent[k].sort((a, b) => getName(professions[a]).localeCompare(getName(professions[b]), 'ru')));
+      const result = [];
+      function walk(parentId) {
+        (byParent[parentId] || []).forEach(id => {
+          result.push(id);
+          walk(id);
+        });
+      }
+      walk(null);
+      return result;
+    }
+
     fetch('profi.json').then(r => r.json())
       .then(profi => {
         mergeProfi(profi);
         const professions = profi.professions;
-        const ids = Object.keys(professions).sort((a, b) => {
-          const na = typeof professions[a] === 'string' ? professions[a] : professions[a].name;
-          const nb = typeof professions[b] === 'string' ? professions[b] : professions[b].name;
-          return na.localeCompare(nb, 'ru');
-        });
+        const ids = Object.keys(professions);
+        const treeIds = getTreeOrderIds(professions, ids);
 
-        const tbody = ids.map(id => {
+        const tbody = treeIds.map(id => {
           const p = professions[id];
           const name = typeof p === 'string' ? p : p.name;
           const ms = typeof p === 'object' ? (p.market_score ?? 50) : 50;
