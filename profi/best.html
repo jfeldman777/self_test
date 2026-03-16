@@ -37,6 +37,17 @@
     .market-banner a { color: #0369a1; font-weight: 500; }
     .home-link { display: inline-block; margin-bottom: 12px; color: #2563eb; text-decoration: none; font-weight: 500; }
     .home-link:hover { text-decoration: underline; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: white; padding: 24px; border-radius: 12px; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal h3 { margin: 0 0 16px 0; font-size: 1.1rem; }
+    .modal-close { margin-top: 16px; margin-right: 8px; padding: 8px 16px; background: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .modal-prof { margin-top: 16px; margin-right: 8px; padding: 8px 16px; background: #0369a1; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    .sum-list { list-style: none; padding: 0; margin: 0; }
+    .sum-list li { padding: 8px 0; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+    .sum-list .sum-name { flex: 1; }
+    .sum-list .sum-val { min-width: 60px; }
+    .prof-list { list-style: none; padding: 0; margin: 0; }
+    .prof-list li { padding: 6px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
   </style>
 </head>
 <body>
@@ -48,9 +59,27 @@
     <div id="best-form"></div>
     <div class="btn-row">
       <button type="button" class="btn btn-primary" id="btn-find">Найти лучшую</button>
+      <button type="button" class="btn btn-secondary" id="btn-extra" style="display: none;">ДОПОЛНИТЕЛЬНО</button>
       <a href="index.html" class="btn btn-secondary">Назад</a>
     </div>
     <div id="best-result" class="result-block" style="display: none;"></div>
+    <div id="modal-overlay" class="modal-overlay" style="display: none;">
+      <div class="modal">
+        <h3>Сумма по позициям</h3>
+        <ul id="modal-sum-list" class="sum-list"></ul>
+        <div>
+          <button type="button" class="modal-close" id="modal-close">Закрыть</button>
+          <button type="button" class="modal-prof" id="modal-prof">ПРОФЕССИЯ</button>
+        </div>
+      </div>
+    </div>
+    <div id="prof-modal-overlay" class="modal-overlay" style="display: none;">
+      <div class="modal">
+        <h3 id="prof-modal-title">Параметры профессии</h3>
+        <ul id="prof-modal-list" class="prof-list"></ul>
+        <button type="button" class="modal-close" id="prof-modal-close">Закрыть</button>
+      </div>
+    </div>
   </div>
   <script>
     const STORAGE_KEY = 'profiStatusOverrides';
@@ -59,6 +88,7 @@
     let cardData = null;
     let marketData = null;
     let flatAbilities = [];
+    let lastBestRes = null;
 
     function mergeProfi(profi) {
       try {
@@ -164,7 +194,7 @@
       let msDisplay = '—';
       if (mode === 'country') msDisplay = marketMult;
       else if (mode === 'manual') msDisplay = marketMult;
-      return { evalId, firstBlockSum, secondBlockSum, marketMult, name: getName(professions[evalId]), market_score: msDisplay, katastrofa, nadoNoNet, topHobbies };
+      return { evalId, firstBlockSum, secondBlockSum, marketMult, name: getName(professions[evalId]), market_score: msDisplay, katastrofa, nadoNoNet, topHobbies, sum, target };
     }
 
     function loadForm() {
@@ -202,6 +232,7 @@
       const allResults = [];
       Object.keys(professions).forEach(id => {
         if (!cardData[id]) return;
+        if (choices[id] === 'nowant') return; // «не хочу» — исключаем из кандидатов
         const res = computeDeltaForProfession(id, choices);
         if (res) allResults.push(res);
       });
@@ -214,7 +245,9 @@
       const bestRes = byMarket[0] || null;
 
       const resultEl = document.getElementById('best-result');
+      lastBestRes = bestRes;
       if (bestRes) {
+        document.getElementById('btn-extra').style.display = 'inline-block';
         const profName = (bestRes.name || '').toUpperCase();
         let html = `<h3>Лучшая профессия для вас: <span class="prof-name">${profName}</span></h3>`;
         const mode = localStorage.getItem('profiMarketMode') || 'none';
@@ -239,9 +272,32 @@
         resultEl.innerHTML = html;
         resultEl.style.display = 'block';
       } else {
+        document.getElementById('btn-extra').style.display = 'none';
         resultEl.innerHTML = '<h3>Не удалось определить</h3><p>Выберите хочу/не хочу хотя бы для одной профессии.</p><a href="index.html" class="home-link">Домой</a>';
         resultEl.style.display = 'block';
       }
+    }
+
+    function showSumModal() {
+      if (!lastBestRes || !lastBestRes.sum || !flatAbilities.length) return;
+      const ul = document.getElementById('modal-sum-list');
+      ul.innerHTML = lastBestRes.sum.map((s, i) => {
+        const name = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
+        return `<li><span class="sum-name">${name}</span><span class="sum-val">${s.toFixed(2)}</span></li>`;
+      }).join('');
+      document.getElementById('modal-overlay').style.display = 'flex';
+    }
+
+    function showProfModal() {
+      if (!lastBestRes || !lastBestRes.target || !flatAbilities.length) return;
+      document.getElementById('prof-modal-title').textContent = 'Параметры профессии: ' + (lastBestRes.name || '');
+      const ul = document.getElementById('prof-modal-list');
+      ul.innerHTML = lastBestRes.target.map((v, i) => {
+        const name = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
+        return `<li><span>${name}</span><span>${v}</span></li>`;
+      }).join('');
+      document.getElementById('modal-overlay').style.display = 'none';
+      document.getElementById('prof-modal-overlay').style.display = 'flex';
     }
 
     Promise.all([
@@ -258,6 +314,20 @@
       .catch(() => document.getElementById('best-form').innerHTML = '<p>Ошибка загрузки</p>');
 
     document.getElementById('btn-find').addEventListener('click', findBest);
+    document.getElementById('btn-extra').addEventListener('click', showSumModal);
+    document.getElementById('modal-close').addEventListener('click', () => {
+      document.getElementById('modal-overlay').style.display = 'none';
+    });
+    document.getElementById('modal-prof').addEventListener('click', showProfModal);
+    document.getElementById('prof-modal-close').addEventListener('click', () => {
+      document.getElementById('prof-modal-overlay').style.display = 'none';
+    });
+    document.getElementById('prof-modal-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'prof-modal-overlay') document.getElementById('prof-modal-overlay').style.display = 'none';
+    });
+    document.getElementById('modal-overlay').addEventListener('click', (e) => {
+      if (e.target.id === 'modal-overlay') document.getElementById('modal-overlay').style.display = 'none';
+    });
     (function() {
       function updateBanner() {
         const m = localStorage.getItem('profiMarketMode') || 'none';
