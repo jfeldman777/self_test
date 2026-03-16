@@ -92,6 +92,7 @@
 
   <script>
     const CHOICE = { want: 1, nowant: -1, eval: 0 };
+    const EXCLUDE_GROUPS = ['СТАТУС', 'ЗАРПЛАТА'];
     const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
     let profiData = null;
     let cardData = null;
@@ -105,6 +106,7 @@
     function buildFlatAbilities() {
       flatAbilities = [];
       profiData.abilityGroups.forEach(group => {
+        if (EXCLUDE_GROUPS.includes(group.name)) return;
         group.abilities.forEach(ability => {
           flatAbilities.push({ group: group.name, name: ability });
         });
@@ -147,6 +149,7 @@
       if (!cardByGroup || Array.isArray(cardByGroup)) return null;
       const flat = [];
       profiData.abilityGroups.forEach(group => {
+        if (EXCLUDE_GROUPS.includes(group.name)) return;
         group.abilities.forEach(ability => {
           const groupData = cardByGroup[group.name];
           flat.push(groupData && groupData[ability] !== undefined ? groupData[ability] : 0);
