@@ -141,12 +141,14 @@
       if (!target) return null;
       const professions = profiData.professions;
       const sum = new Array(target.length).fill(0);
+      let totalCount = 0;
       Object.keys(choices).forEach(id => {
         if (!cardData[id] || id === evalId) return;
         const choice = choices[id];
         if (choice === 'skip') return;
         const vals = flattenCard(cardData[id]);
         if (!vals) return;
+        totalCount++;
         const sign = choice === 'want' ? 1 : -1;
         vals.forEach((v, i) => { sum[i] += sign * v; });
       });
@@ -156,7 +158,7 @@
       target.forEach((t, i) => {
         const s = sum[i];
         const numVal = Math.abs(s);
-        const valStr = numVal.toFixed(2);
+        const valStr = (totalCount > 0 ? (numVal / totalCount).toFixed(2) : numVal.toFixed(2));
         const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
         if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
         if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
