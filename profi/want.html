@@ -258,22 +258,22 @@
 
     function updateResultsFromSum(target, sum, evalId) {
       const professions = profiData.professions;
-      const nadoNoNet = [];
       const katastrofa = [];
+      const nadoNoNet = [];
       target.forEach((t, i) => {
         const s = sum[i];
         const numVal = Math.abs(s);
         const valStr = numVal.toFixed(2);
         const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
-        if (t < 0 && s > 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
-        if (t > 0 && s < 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
       });
-      nadoNoNet.sort((a, b) => b.val - a.val);
       katastrofa.sort((a, b) => b.val - a.val);
+      nadoNoNet.sort((a, b) => b.val - a.val);
 
       const residual = new Array(target.length).fill(0);
-      nadoNoNet.forEach(a => { residual[a.idx] = 1; });
-      katastrofa.forEach(a => { residual[a.idx] = -1; });
+      katastrofa.forEach(a => { residual[a.idx] = 1; });
+      nadoNoNet.forEach(a => { residual[a.idx] = -1; });
 
       const hobbyCandidates = [];
       Object.keys(professions).forEach(id => {
@@ -289,15 +289,15 @@
       const results = document.getElementById('results');
       results.style.display = 'block';
       let html = '';
-      if (nadoNoNet.length) {
-        const profName = (getName(professions[evalId]) || '').toUpperCase();
-        html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
-      }
       if (katastrofa.length) {
-        html += `<div class="fail-block katastrofa"><p class="fail-desc">Некоторая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        const profName = (getName(professions[evalId]) || '').toUpperCase();
+        html += `<div class="fail-block katastrofa"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
       }
-      if (!nadoNoNet.length && !katastrofa.length) {
-        html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
+      if (nadoNoNet.length) {
+        html += `<div class="fail-block nado"><p class="fail-desc">Некоторая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+      }
+      if (!katastrofa.length && !nadoNoNet.length) {
+        html = '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Проблем и противоречий нет.</p></div>';
       }
       if (topHobbies.length) {
         const hobbyLines = topHobbies.map((h, i) => {

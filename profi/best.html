@@ -115,28 +115,27 @@
         vals.forEach((v, i) => { sum[i] += sign * v; });
       });
 
-      const nadoNoNet = [];
       const katastrofa = [];
+      const nadoNoNet = [];
       target.forEach((t, i) => {
         const s = sum[i];
         const numVal = Math.abs(s);
         const valStr = numVal.toFixed(2);
         const abilityName = flatAbilities[i] ? `${flatAbilities[i].group}: ${flatAbilities[i].name}` : `#${i}`;
-        if (t < 0 && s > 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
-        if (t > 0 && s < 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t < 0 && s > 0) katastrofa.push({ name: abilityName, val: numVal, valStr, idx: i });
+        if (t > 0 && s < 0) nadoNoNet.push({ name: abilityName, val: numVal, valStr, idx: i });
       });
-      nadoNoNet.sort((a, b) => b.val - a.val);
       katastrofa.sort((a, b) => b.val - a.val);
+      nadoNoNet.sort((a, b) => b.val - a.val);
 
-      const problemIndices = new Set([...nadoNoNet.map(a => a.idx), ...katastrofa.map(a => a.idx)]);
-      const firstSum = (nadoNoNet.reduce((a, b) => a + b.val, 0) + katastrofa.reduce((a, b) => a + b.val, 0));
-      const secondSum = sum.reduce((acc, s, i) => problemIndices.has(i) ? acc : acc + s, 0);
+      const firstBlockSum = katastrofa.reduce((a, b) => a + b.val, 0);
+      const secondBlockSum = nadoNoNet.reduce((a, b) => a + b.val, 0);
 
       const mode = localStorage.getItem('profiMarketMode') || 'none';
       const p = professions[evalId];
       const market_score = typeof p === 'object' ? (p.market_score ?? 50) : 50;
       const ms = (typeof market_score === 'number' && market_score <= 1) ? market_score * 100 : market_score;
-      let mult = 1;
+      let marketMult = 1;
       if (mode === 'country') {
         const country = localStorage.getItem('profiMarketCountry') || 'Russia';
         const coeffOverrides = (() => { try { const s = localStorage.getItem('profiCoeffOverrides'); return s ? JSON.parse(s) : {}; } catch (e) { return {}; } })();
@@ -144,18 +143,14 @@
         const defaultData = coeffOverrides.default || marketData?.default || {};
         let country_coeff = countryData[evalId] ?? defaultData[evalId] ?? 1.0;
         country_coeff = Math.max(0.2, Math.min(1.0, country_coeff));
-        mult = ms * country_coeff;
+        marketMult = ms * country_coeff;
       } else if (mode === 'manual') {
-        mult = ms;
+        marketMult = ms;
       }
 
-      const firstWeighted = firstSum * mult;
-      const secondWeighted = secondSum * mult;
-      const delta = secondWeighted - firstWeighted;
-
       const residual = new Array(target.length).fill(0);
-      nadoNoNet.forEach(a => { residual[a.idx] = 1; });
-      katastrofa.forEach(a => { residual[a.idx] = -1; });
+      katastrofa.forEach(a => { residual[a.idx] = 1; });
+      nadoNoNet.forEach(a => { residual[a.idx] = -1; });
       const hobbyCandidates = [];
       Object.keys(professions).forEach(id => {
         if (!cardData[id] || id === evalId) return;
@@ -167,9 +162,9 @@
       const topHobbies = hobbyCandidates.slice(0, 2);
 
       let msDisplay = '—';
-      if (mode === 'country') msDisplay = mult;
-      else if (mode === 'manual') msDisplay = mult;
-      return { delta, name: getName(professions[evalId]), market_score: msDisplay, nadoNoNet, katastrofa, topHobbies };
+      if (mode === 'country') msDisplay = marketMult;
+      else if (mode === 'manual') msDisplay = marketMult;
+      return { evalId, firstBlockSum, secondBlockSum, marketMult, name: getName(professions[evalId]), market_score: msDisplay, katastrofa, nadoNoNet, topHobbies };
     }
 
     function loadForm() {
@@ -204,17 +199,19 @@
         if (sel) choices[id] = sel.value;
       });
 
-      let bestRes = null;
-      let bestDelta = -Infinity;
-
+      const allResults = [];
       Object.keys(professions).forEach(id => {
         if (!cardData[id]) return;
         const res = computeDeltaForProfession(id, choices);
-        if (res && res.delta > bestDelta) {
-          bestDelta = res.delta;
-          bestRes = res;
-        }
+        if (res) allResults.push(res);
       });
+
+      const byFirstBlock = allResults.slice().sort((a, b) => a.firstBlockSum - b.firstBlockSum);
+      const top5 = byFirstBlock.slice(0, 5);
+      const bySecondBlock = top5.slice().sort((a, b) => a.secondBlockSum - b.secondBlockSum);
+      const top3 = bySecondBlock.slice(0, 3);
+      const byMarket = top3.slice().sort((a, b) => b.marketMult - a.marketMult);
+      const bestRes = byMarket[0] || null;
 
       const resultEl = document.getElementById('best-result');
       if (bestRes) {
@@ -222,14 +219,14 @@
         let html = `<h3>Лучшая профессия для вас: <span class="prof-name">${profName}</span></h3>`;
         const mode = localStorage.getItem('profiMarketMode') || 'none';
         if (mode !== 'none') html += `<p>Востребованность: ${bestRes.market_score}</p>`;
-        if (bestRes.nadoNoNet.length) {
-          html += `<div class="fail-block nado"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${bestRes.nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
-        }
         if (bestRes.katastrofa.length) {
-          html += `<div class="fail-block katastrofa"><p class="fail-desc">Некоторая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${bestRes.katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+          html += `<div class="fail-block katastrofa"><p class="fail-desc">Если вы решите выбрать профессию <span class="prof-name">${profName}</span>, возможны следующие проблемы. <strong>Некоторую часть способностей, из тех что у вас есть, вам в этой профессии реализовать не удастся</strong> и придётся компенсировать этот избыток через хобби (смотри рекомендации внизу).</p><ul class="fail-list">${bestRes.katastrofa.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
         }
-        if (!bestRes.nadoNoNet.length && !bestRes.katastrofa.length) {
-          html += '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Совпадений нет.</p></div>';
+        if (bestRes.nadoNoNet.length) {
+          html += `<div class="fail-block nado"><p class="fail-desc">Некоторая часть способностей будет востребована, но как раз <strong>этих способностей у вас мало</strong> — что негативно скажется на ваших успехах в данной профессии.</p><ul class="fail-list">${bestRes.nadoNoNet.map(a => `<li>${a.name.replace(/^[^:]+:\s*/, '')} — ${a.valStr}</li>`).join('')}</ul></div>`;
+        }
+        if (!bestRes.katastrofa.length && !bestRes.nadoNoNet.length) {
+          html += '<div class="fail-block" style="background:#f0fdf4;border-color:#16a34a;"><h4>Всё в порядке</h4><p>Проблем и противоречий нет.</p></div>';
         }
         if (bestRes.topHobbies.length) {
           const hobbyLines = bestRes.topHobbies.map((h, i) => {
