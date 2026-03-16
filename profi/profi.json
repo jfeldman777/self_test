@@ -29,33 +29,5 @@
         "гармоничность"
       ]
     }
-  ],
-  "professions": {
-    "1": { "name": "Художник за холстом", "market_score": 50 },
-    "24": { "name": "Водитель", "market_score": 50 },
-    "2": { "name": "Водитель автобуса", "market_score": 50, "parent": "24" },
-    "25": { "name": "Водитель такси", "market_score": 50, "parent": "24" },
-    "26": { "name": "Музыкант", "market_score": 50 },
-    "3": { "name": "Дирижер в оркестре", "market_score": 50, "parent": "26" },
-    "4": { "name": "Виолончелист в оркестре", "market_score": 50, "parent": "26" },
-    "5": { "name": "Учитель начальной школы", "market_score": 50 },
-    "6": { "name": "Военный летчик", "market_score": 50 },
-    "7": { "name": "Профессиональный футболист", "market_score": 50 },
-    "8": { "name": "Дипломат", "market_score": 50 },
-    "9": { "name": "Программист-фрилансер", "market_score": 50 },
-    "10": { "name": "Шеф-повар", "market_score": 50 },
-    "11": { "name": "Менеджер среднего звена", "market_score": 50 },
-    "12": { "name": "Изобретатель", "market_score": 50 },
-    "13": { "name": "Режиссер", "market_score": 50 },
-    "14": { "name": "Хирург", "market_score": 50 },
-    "15": { "name": "Архитектор", "market_score": 50 },
-    "16": { "name": "Психолог", "market_score": 50 },
-    "17": { "name": "Журналист", "market_score": 50 },
-    "18": { "name": "Бухгалтер", "market_score": 50 },
-    "19": { "name": "Переводчик", "market_score": 50 },
-    "20": { "name": "Фотограф", "market_score": 50 },
-    "21": { "name": "Пожарный", "market_score": 50 },
-    "22": { "name": "Строитель", "market_score": 50 },
-    "23": { "name": "Музыкант общего профиля", "market_score": 50, "parent": "26" }
-  }
+  ]
 }

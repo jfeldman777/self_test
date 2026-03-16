@@ -46,6 +46,15 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
+    function mergeCardIntoProfi(profi, cards) {
+      if (!cards) return;
+      if (!profi.professions) profi.professions = {};
+      Object.keys(cards).forEach(id => {
+        const card = cards[id];
+        profi.professions[id] = { name: card.name, market_score: card.market_score ?? 50 };
+        if (card.parent !== undefined) profi.professions[id].parent = card.parent;
+      });
+    }
     function mergeProfi(profi) {
       const overrides = loadOverrides();
       const professions = profi.professions;
@@ -79,8 +88,9 @@
       return result;
     }
 
-    fetch('profi.json').then(r => r.json())
-      .then(profi => {
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
+      .then(([profi, cards]) => {
+        mergeCardIntoProfi(profi, cards);
         mergeProfi(profi);
         const professions = profi.professions;
         const ids = Object.keys(professions);

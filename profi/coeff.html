@@ -56,6 +56,15 @@
       return countryData[id] ?? defaultData[id] ?? 1.0;
     }
 
+    function mergeCardIntoProfi(profi, cards) {
+      if (!cards) return;
+      if (!profi.professions) profi.professions = {};
+      Object.keys(cards).forEach(id => {
+        const card = cards[id];
+        profi.professions[id] = { name: card.name, market_score: card.market_score ?? 50 };
+        if (card.parent !== undefined) profi.professions[id].parent = card.parent;
+      });
+    }
     function getTreeOrderIds(professions, ids) {
       const getName = p => typeof p === 'string' ? p : (p && p.name) || '';
       const byParent = {};
@@ -100,8 +109,9 @@
       `;
     }
 
-    Promise.all([fetch('profi.json').then(r => r.json()), fetch('market.json').then(r => r.json())])
-      .then(([profi, marketData]) => {
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json()), fetch('market.json').then(r => r.json())])
+      .then(([profi, cards, marketData]) => {
+        mergeCardIntoProfi(profi, cards);
         const countrySelect = document.getElementById('country-select');
         const urlCountry = new URLSearchParams(location.search).get('country');
         if (urlCountry) countrySelect.value = urlCountry;

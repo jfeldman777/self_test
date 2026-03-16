@@ -446,6 +446,15 @@
     });
 
     const STORAGE_KEY = 'profiStatusOverrides';
+    function mergeCardIntoProfi(profi, cards) {
+      if (!cards) return;
+      if (!profi.professions) profi.professions = {};
+      Object.keys(cards).forEach(id => {
+        const card = cards[id];
+        profi.professions[id] = { name: card.name, market_score: card.market_score ?? 50 };
+        if (card.parent !== undefined) profi.professions[id].parent = card.parent;
+      });
+    }
     function mergeProfi(profi) {
       try {
         const s = localStorage.getItem(STORAGE_KEY);
@@ -458,8 +467,10 @@
       } catch (e) {}
       return profi;
     }
-    Promise.all([fetch('profi.json').then(r => r.json()).then(mergeProfi), fetch('card.json').then(r => r.json())])
+    Promise.all([fetch('profi.json').then(r => r.json()), fetch('card.json').then(r => r.json())])
       .then(([profi, cards]) => {
+        mergeCardIntoProfi(profi, cards);
+        mergeProfi(profi);
         profiData = profi;
         cardData = cards;
         loadForm();
