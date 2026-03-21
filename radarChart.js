@@ -34,9 +34,12 @@ function drawRadarChart(containerId, labels, values) {
         ctx.strokeStyle = "#aaa";
         ctx.stroke();
 
-        ctx.font = "18px Arial";
+        const labelX = cx + Math.cos(angle) * (R + 15);
+        const labelY = cy + Math.sin(angle) * (R + 15);
+        ctx.font = "12px Arial";
         ctx.textAlign = "center";
-        ctx.fillText(label, x, y - 5);
+        ctx.fillStyle = "#333";
+        ctx.fillText(label, labelX, labelY);
     });
 
     ctx.beginPath();
@@ -77,29 +80,4 @@ function drawRadarChart(containerId, labels, values) {
         ctx.fillText(v + "%", textX, textY);
     });
 
-    const overlay = document.createElement("div");
-    overlay.className = "chart-click-overlay";
-    overlay.style.cssText = "position:absolute;top:0;left:0;width:" + canvasWidth + "px;height:" + canvasHeight + "px;pointer-events:auto;";
-    container.style.position = "relative";
-    container.appendChild(overlay);
-
-    labels.forEach(function(label, i) {
-        const angle = i * angleStep - Math.PI / 2;
-        const x = cx + Math.cos(angle) * R;
-        const y = cy + Math.sin(angle) * R;
-
-        const btn = document.createElement("button");
-        btn.className = "chart-number-btn radar-node";
-        btn.textContent = label;
-        btn.dataset.hintIndex = (i + 1);
-        btn.style.cssText = "position:absolute;left:" + (x - 16) + "px;top:" + (y - 16) + "px;width:32px;height:32px;border-radius:50%;border:2px solid #0077ff;background:rgba(255,255,255,0.9);cursor:pointer;font-weight:bold;font-size:14px;";
-        btn.title = "Уровень " + (i + 1);
-        overlay.appendChild(btn);
-
-        btn.addEventListener("click", function() {
-            overlay.querySelectorAll(".radar-node").forEach(n => n.classList.remove("active"));
-            btn.classList.add("active");
-            window.dispatchEvent(new CustomEvent("chartHintClick", { detail: { index: i + 1 } }));
-        });
-    });
 }

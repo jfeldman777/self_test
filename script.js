@@ -612,7 +612,6 @@ function loadResult(){
     const values = keys.map(k => (r[k] !== undefined && r[k] !== null ? r[k] : 0));
     if (keys.length > 0) {
       drawRadarChart('chart', labels, values);
-      initChartHintPanel();
     }
   }
 }

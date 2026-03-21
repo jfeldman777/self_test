@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Материал</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="mobile-nav-bar" id="mobile-nav" style="display: none;">
+    <button class="mobile-back-btn" id="mobile-back-btn" disabled>← Назад</button>
+    <span class="mobile-breadcrumb" id="mobile-breadcrumb"></span>
+  </div>
+  <div class="pages-layout">
+    <div class="pages-column chapters">
+      <div class="pages-column-header">Главы</div>
+      <div class="pages-column-body" id="chapters-list"></div>
+    </div>
+    <div class="pages-column paragraphs">
+      <div class="pages-column-header">Параграфы</div>
+      <div class="pages-column-body" id="paragraphs-list"></div>
+    </div>
+    <div class="pages-column content">
+      <div class="pages-column-header">Текст</div>
+      <div class="pages-column-body">
+        <div id="content-body" class="content-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let structure = [];
+    let currentChapterId = null;
+    let currentParagraphId = null;
+    let mobileView = 'chapters'; // chapters | paragraphs | content
+    const isMobile = () => window.innerWidth <= 768;
+
+    function updateMobileView() {
+      if (!isMobile()) return;
+      document.querySelectorAll('.pages-column').forEach(col => col.classList.remove('mobile-visible'));
+      const nav = document.getElementById('mobile-nav');
+      const backBtn = document.getElementById('mobile-back-btn');
+      const breadcrumb = document.getElementById('mobile-breadcrumb');
+      nav.style.display = 'flex';
+
+      if (mobileView === 'chapters') {
+        document.querySelector('.pages-column.chapters').classList.add('mobile-visible');
+        backBtn.disabled = true;
+        breadcrumb.textContent = 'Главы';
+      } else if (mobileView === 'paragraphs') {
+        document.querySelector('.pages-column.paragraphs').classList.add('mobile-visible');
+        backBtn.disabled = false;
+        const ch = structure.find(c => c.id === currentChapterId);
+        breadcrumb.textContent = ch ? ch.title : 'Параграфы';
+      } else {
+        document.querySelector('.pages-column.content').classList.add('mobile-visible');
+        backBtn.disabled = false;
+        const ch = structure.find(c => c.id === currentChapterId);
+        const p = ch && ch.paragraphs.find(x => x.id === currentParagraphId);
+        breadcrumb.textContent = p ? p.title : 'Текст';
+      }
+    }
+
+    function renderChapters() {
+      const el = document.getElementById('chapters-list');
+      el.innerHTML = structure.map(ch => `
+        <div class="chapter-item ${ch.id === currentChapterId ? 'active' : ''}" data-id="${ch.id}">
+          ${ch.title}
+        </div>
+      `).join('');
+      el.querySelectorAll('.chapter-item').forEach(item => {
+        item.addEventListener('click', () => {
+          selectChapter(item.dataset.id);
+          if (isMobile()) { mobileView = 'paragraphs'; updateMobileView(); }
+        });
+      });
+    }
+
+    function renderParagraphs() {
+      const chapter = structure.find(ch => ch.id === currentChapterId);
+      const el = document.getElementById('paragraphs-list');
+      if (!chapter) {
+        el.innerHTML = '';
+        return;
+      }
+      el.innerHTML = chapter.paragraphs.map(p => `
+        <div class="paragraph-item ${p.id === currentParagraphId ? 'active' : ''}" data-id="${p.id}" data-file="${p.file}">
+          ${p.title}
+        </div>
+      `).join('');
+      el.querySelectorAll('.paragraph-item').forEach(item => {
+        item.addEventListener('click', () => {
+          selectParagraph(item.dataset.id, item.dataset.file);
+          if (isMobile()) { mobileView = 'content'; updateMobileView(); }
+        });
+      });
+    }
+
+    function selectChapter(id) {
+      currentChapterId = id;
+      currentParagraphId = null;
+      const chapter = structure.find(ch => ch.id === id);
+      if (chapter && chapter.paragraphs.length) {
+        const first = chapter.paragraphs[0];
+        selectParagraph(first.id, first.file);
+      } else {
+        document.getElementById('content-body').innerHTML = '';
+      }
+      renderChapters();
+      renderParagraphs();
+    }
+
+    function selectParagraph(id, file) {
+      currentParagraphId = id;
+      renderParagraphs();
+      loadContent(file);
+    }
+
+    function loadContent(file) {
+      const el = document.getElementById('content-body');
+      el.innerHTML = '<p>Загрузка…</p>';
+      fetch(file)
+        .then(r => r.text())
+        .then(html => {
+          el.innerHTML = html;
+        })
+        .catch(() => {
+          el.innerHTML = '<p>Ошибка загрузки.</p>';
+        });
+    }
+
+    document.getElementById('mobile-back-btn').addEventListener('click', () => {
+      if (mobileView === 'content') { mobileView = 'paragraphs'; updateMobileView(); }
+      else if (mobileView === 'paragraphs') { mobileView = 'chapters'; updateMobileView(); }
+    });
+
+    window.addEventListener('resize', () => {
+      if (isMobile()) updateMobileView();
+      else document.querySelectorAll('.pages-column').forEach(col => col.classList.add('mobile-visible'));
+    });
+
+    fetch('structure.json')
+      .then(r => r.json())
+      .then(data => {
+        structure = data;
+        if (structure.length) {
+          selectChapter(structure[0].id);
+        }
+        if (isMobile()) updateMobileView();
+      })
+      .catch(() => {
+        document.getElementById('chapters-list').innerHTML = '<p>Ошибка загрузки структуры.</p>';
+      });
+  </script>
+</body>
+</html>
