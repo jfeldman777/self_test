@@ -18,7 +18,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="help-page">
+    <div class="help-page" data-lang="ru">
       <a href="index.html" class="back-link">← Назад к игре</a>
       <h1 class="help-title">Описание системы</h1>
 
@@ -28,13 +28,44 @@
         <li>Нажмите <strong>ИГРА</strong> — элементы перемешаются.</li>
         <li>Перетаскивайте ячейки, меняя их местами.</li>
         <li>Нажмите <strong>ГОТОВО</strong> — система проверит правильность.</li>
-       
       </ul>
+    </div>
 
-      
+    <div class="help-page" data-lang="en" style="display: none;">
+      <a href="index.html" class="back-link">← Back to the game</a>
+      <h1 class="help-title">System description</h1>
 
-      
+      <h2>Arrange the elements correctly</h2>
+      <p>A drag-and-drop game: you need to arrange the table elements in the correct order.</p>
+      <ul>
+        <li>Press <strong>PLAY</strong> — the elements will be shuffled.</li>
+        <li>Drag cells to swap them.</li>
+        <li>Press <strong>DONE</strong> — the system will check correctness.</li>
+      </ul>
     </div>
   </div>
+
+  <script>
+    (function() {
+      function getLang() {
+        try {
+          var url = new URLSearchParams(window.location.search).get('lang');
+          if (url === 'en' || url === 'ru') return url;
+          var saved = localStorage.getItem('selfTestLang');
+          if (saved === 'en' || saved === 'ru') return saved;
+        } catch (e) {}
+        return 'ru';
+      }
+      var lang = getLang();
+      document.documentElement.lang = lang;
+      document.title = lang === 'en' ? 'System description' : 'Описание системы';
+      document.querySelectorAll('.help-page').forEach(function(el) {
+        el.style.display = (el.getAttribute('data-lang') === lang) ? '' : 'none';
+      });
+      document.querySelectorAll('.back-link').forEach(function(a) {
+        a.setAttribute('href', 'index.html?lang=' + lang);
+      });
+    })();
+  </script>
 </body>
 </html>

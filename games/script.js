@@ -9,349 +9,484 @@ const gameLevels = [
   {
     level: 1,
     name: 'Поле внимания',
+    name_en: 'Field of attention',
     rows: 8,
     cols: 2,
     headers: ['Уровень', 'Поле внимания'],
+    headers_en: ['Level', 'Field of attention'],
     elements: [
       // Строка 1
-      { id: 1, content: '1' },
-      { id: 2, content: 'один объект' },
+      { id: 1, content: '1', content_en: '1' },
+      { id: 2, content: 'один объект', content_en: 'one object' },
       // Строка 2
-      { id: 3, content: '2' },
-      { id: 4, content: 'много объектов' },
+      { id: 3, content: '2', content_en: '2' },
+      { id: 4, content: 'много объектов', content_en: 'many objects' },
       // Строка 3
-      { id: 5, content: '3' },
-      { id: 6, content: 'один процесс' },
+      { id: 5, content: '3', content_en: '3' },
+      { id: 6, content: 'один процесс', content_en: 'one process' },
       // Строка 4
-      { id: 7, content: '4' },
-      { id: 8, content: 'много процессов' },
+      { id: 7, content: '4', content_en: '4' },
+      { id: 8, content: 'много процессов', content_en: 'many processes' },
       // Строка 5
-      { id: 9, content: '5' },
-      { id: 10, content: 'одна карта' },
+      { id: 9, content: '5', content_en: '5' },
+      { id: 10, content: 'одна карта', content_en: 'one map' },
       // Строка 6
-      { id: 11, content: '6' },
-      { id: 12, content: 'много карт' },
+      { id: 11, content: '6', content_en: '6' },
+      { id: 12, content: 'много карт', content_en: 'many maps' },
       // Строка 7
-      { id: 13, content: '7' },
-      { id: 14, content: 'одна система' },
+      { id: 13, content: '7', content_en: '7' },
+      { id: 14, content: 'одна система', content_en: 'one system' },
       // Строка 8
-      { id: 15, content: '8' },
-      { id: 16, content: 'много систем' }
+      { id: 15, content: '8', content_en: '8' },
+      { id: 16, content: 'много систем', content_en: 'many systems' }
     ]
   },
   {
     level: 2,
     name: 'Геометрия',
+    name_en: 'Geometry',
     rows: 8,
     cols: 2,
     headers: ['Уровень', 'Геометрия'],
+    headers_en: ['Level', 'Geometry'],
     elements: [
       // Строка 1
-      { id: 1, content: '1' },
-      { id: 2, content: 'Точка' },
+      { id: 1, content: '1', content_en: '1' },
+      { id: 2, content: 'Точка', content_en: 'Point' },
       // Строка 2
-      { id: 3, content: '2' },
-      { id: 4, content: 'Куча точек' },
+      { id: 3, content: '2', content_en: '2' },
+      { id: 4, content: 'Куча точек', content_en: 'A heap of points' },
       // Строка 3
-      { id: 5, content: '3' },
-      { id: 6, content: 'линия' },
+      { id: 5, content: '3', content_en: '3' },
+      { id: 6, content: 'линия', content_en: 'line' },
       // Строка 4
-      { id: 7, content: '4' },
-      { id: 8, content: 'пучок линий' },
+      { id: 7, content: '4', content_en: '4' },
+      { id: 8, content: 'пучок линий', content_en: 'a bundle of lines' },
       // Строка 5
-      { id: 9, content: '5' },
-      { id: 10, content: 'плоскость' },
+      { id: 9, content: '5', content_en: '5' },
+      { id: 10, content: 'плоскость', content_en: 'plane' },
       // Строка 6
-      { id: 11, content: '6' },
-      { id: 12, content: 'пачка плоскостей' },
+      { id: 11, content: '6', content_en: '6' },
+      { id: 12, content: 'пачка плоскостей', content_en: 'a stack of planes' },
       // Строка 7
-      { id: 13, content: '7' },
-      { id: 14, content: 'универсум' },
+      { id: 13, content: '7', content_en: '7' },
+      { id: 14, content: 'универсум', content_en: 'universe' },
       // Строка 8
-      { id: 15, content: '8' },
-      { id: 16, content: 'мультиверсум' }
+      { id: 15, content: '8', content_en: '8' },
+      { id: 16, content: 'мультиверсум', content_en: 'multiverse' }
     ]
   },
   {
     level: 3,
     name: 'Мышление',
+    name_en: 'Thinking',
     rows: 8,
     cols: 6,
     headers: ['Уровень', 'Вопрос', 'Операция внутрь', 'Операция наружу', 'Категория внутрь', 'Категория наружу'],
+    headers_en: ['Level', 'Question', 'Operation inward', 'Operation outward', 'Category inward', 'Category outward'],
     elements: [
       // Строка 1
-      { id: 1, content: '1' },
-      { id: 2, content: 'Что?' },
-      { id: 3, content: 'Узнавание' },
-      { id: 4, content: 'Наименование' },
-      { id: 5, content: 'Вещь' },
-      { id: 6, content: 'Имя' },
+      { id: 1, content: '1', content_en: '1' },
+      { id: 2, content: 'Что?', content_en: 'What?' },
+      { id: 3, content: 'Узнавание', content_en: 'Recognition' },
+      { id: 4, content: 'Наименование', content_en: 'Naming' },
+      { id: 5, content: 'Вещь', content_en: 'Thing' },
+      { id: 6, content: 'Имя', content_en: 'Name' },
       // Строка 2
-      { id: 7, content: '2' },
-      { id: 8, content: 'Где?' },
-      { id: 9, content: 'Различение' },
-      { id: 10, content: 'Разграничение' },
-      { id: 11, content: 'Пространство' },
-      { id: 12, content: 'Граница' },
+      { id: 7, content: '2', content_en: '2' },
+      { id: 8, content: 'Где?', content_en: 'Where?' },
+      { id: 9, content: 'Различение', content_en: 'Distinction' },
+      { id: 10, content: 'Разграничение', content_en: 'Demarcation' },
+      { id: 11, content: 'Пространство', content_en: 'Space' },
+      { id: 12, content: 'Граница', content_en: 'Boundary' },
       // Строка 3
-      { id: 13, content: '3' },
-      { id: 14, content: 'Когда?' },
-      { id: 15, content: 'Предельный переход' },
-      { id: 16, content: 'Упорядочение' },
-      { id: 17, content: 'Время' },
-      { id: 18, content: 'Движение' },
+      { id: 13, content: '3', content_en: '3' },
+      { id: 14, content: 'Когда?', content_en: 'When?' },
+      { id: 15, content: 'Целедостижение', content_en: 'Goal attainment' },
+      { id: 16, content: 'Целеполагание', content_en: 'Goal setting' },
+      { id: 17, content: 'Время', content_en: 'Time' },
+      { id: 18, content: 'Движение', content_en: 'Movement' },
       // Строка 4
-      { id: 19, content: '4' },
-      { id: 20, content: 'Как?' },
-      { id: 21, content: 'Ряды' },
-      { id: 22, content: 'Параллельные' },
-      { id: 23, content: 'Роль' },
-      { id: 24, content: 'Способ' },
+      { id: 19, content: '4', content_en: '4' },
+      { id: 20, content: 'Как?', content_en: 'How?' },
+      { id: 21, content: 'Ряды', content_en: 'Series' },
+      { id: 22, content: 'Параллельные', content_en: 'Parallels' },
+      { id: 23, content: 'Роль', content_en: 'Role' },
+      { id: 24, content: 'Способ', content_en: 'Method' },
       // Строка 5
-      { id: 25, content: '5' },
-      { id: 26, content: 'Кто?' },
-      { id: 27, content: 'Свобода' },
-      { id: 28, content: 'Выбор' },
-      { id: 29, content: 'Случайность' },
-      { id: 30, content: 'Риск' },
+      { id: 25, content: '5', content_en: '5' },
+      { id: 26, content: 'Кто?', content_en: 'Who?' },
+      { id: 27, content: 'Свобода', content_en: 'Freedom' },
+      { id: 28, content: 'Выбор', content_en: 'Choice' },
+      { id: 29, content: 'Случайность', content_en: 'Chance' },
+      { id: 30, content: 'Риск', content_en: 'Risk' },
       // Строка 6
-      { id: 31, content: '6' },
-      { id: 32, content: 'Почему?' },
-      { id: 33, content: 'Доказательство' },
-      { id: 34, content: 'Сомнение' },
-      { id: 35, content: 'Причина' },
-      { id: 36, content: 'Следствие' },
+      { id: 31, content: '6', content_en: '6' },
+      { id: 32, content: 'Почему?', content_en: 'Why?' },
+      { id: 33, content: 'Доказательство', content_en: 'Proof' },
+      { id: 34, content: 'Сомнение', content_en: 'Doubt' },
+      { id: 35, content: 'Причина', content_en: 'Cause' },
+      { id: 36, content: 'Следствие', content_en: 'Effect' },
       // Строка 7
-      { id: 37, content: '7' },
-      { id: 38, content: 'А если?' },
-      { id: 39, content: 'Аномалия' },
-      { id: 40, content: 'Парадокс' },
-      { id: 41, content: 'Гений' },
-      { id: 42, content: 'Открытие' },
+      { id: 37, content: '7', content_en: '7' },
+      { id: 38, content: 'А если?', content_en: 'What if?' },
+      { id: 39, content: 'Аномалия', content_en: 'Anomaly' },
+      { id: 40, content: 'Парадокс', content_en: 'Paradox' },
+      { id: 41, content: 'Гений', content_en: 'Genius' },
+      { id: 42, content: 'Открытие', content_en: 'Discovery' },
       // Строка 8
-      { id: 43, content: '8' },
-      { id: 44, content: 'А зачем?' },
-      { id: 45, content: 'Гармония' },
-      { id: 46, content: 'Баланс' },
-      { id: 47, content: 'Учет интересов всех участников, сколь угодно на нас непохожих' },
-      { id: 48, content: 'Учет отдаленных последствий' }
+      { id: 43, content: '8', content_en: '8' },
+      { id: 44, content: 'А зачем?', content_en: 'What for?' },
+      { id: 45, content: 'Гармония', content_en: 'Harmony' },
+      { id: 46, content: 'Баланс', content_en: 'Balance' },
+      { id: 47, content: 'Учет интересов всех участников, сколь угодно на нас непохожих', content_en: 'Considering the interests of all participants, however unlike us' },
+      { id: 48, content: 'Учет отдаленных последствий', content_en: 'Considering distant consequences' }
     ]
   },
   {
     level: 4,
     name: 'Сознание',
+    name_en: 'Co-knowledge',
     rows: 8,
     cols: 4,
     headers: ['Уровень', 'Тип сознания', 'Положительное', 'Отрицательное'],
+    headers_en: ['Level', 'Type of co-knowledge', 'Positive', 'Negative'],
     elements: [
       // Строка 1
-      { id: 1, content: '1' },
-      { id: 2, content: 'Магическое' },
-      { id: 3, content: 'Чудо' },
-      { id: 4, content: 'Тайна' },
+      { id: 1, content: '1', content_en: '1' },
+      { id: 2, content: 'Магическое', content_en: 'Magical' },
+      { id: 3, content: 'Чудо', content_en: 'Miracle' },
+      { id: 4, content: 'Тайна', content_en: 'Mystery' },
       // Строка 2
-      { id: 5, content: '2' },
-      { id: 6, content: 'Этическое' },
-      { id: 7, content: 'Добро' },
-      { id: 8, content: 'Зло' },
+      { id: 5, content: '2', content_en: '2' },
+      { id: 6, content: 'Этическое', content_en: 'Ethical' },
+      { id: 7, content: 'Добро', content_en: 'Good' },
+      { id: 8, content: 'Зло', content_en: 'Evil' },
       // Строка 3
-      { id: 9, content: '3' },
-      { id: 10, content: 'Эстетическое' },
-      { id: 11, content: 'Красота' },
-      { id: 12, content: 'Уродство' },
+      { id: 9, content: '3', content_en: '3' },
+      { id: 10, content: 'Эстетическое', content_en: 'Aesthetic' },
+      { id: 11, content: 'Красота', content_en: 'Beauty' },
+      { id: 12, content: 'Уродство', content_en: 'Ugliness' },
       // Строка 4
-      { id: 13, content: '4' },
-      { id: 14, content: 'Ролевое' },
-      { id: 15, content: 'Соблюдение' },
-      { id: 16, content: 'Нарушение' },
+      { id: 13, content: '4', content_en: '4' },
+      { id: 14, content: 'Ролевое', content_en: 'Role-based' },
+      { id: 15, content: 'Соблюдение', content_en: 'Compliance' },
+      { id: 16, content: 'Нарушение', content_en: 'Violation' },
       // Строка 5
-      { id: 17, content: '5' },
-      { id: 18, content: 'Свободное' },
-      { id: 19, content: 'Активность' },
-      { id: 20, content: 'Пассивность' },
+      { id: 17, content: '5', content_en: '5' },
+      { id: 18, content: 'Свободное', content_en: 'Free' },
+      { id: 19, content: 'Активность', content_en: 'Activity' },
+      { id: 20, content: 'Пассивность', content_en: 'Passivity' },
       // Строка 6
-      { id: 21, content: '6' },
-      { id: 22, content: 'Теоретическое' },
-      { id: 23, content: 'Истина' },
-      { id: 24, content: 'Ложь' },
+      { id: 21, content: '6', content_en: '6' },
+      { id: 22, content: 'Теоретическое', content_en: 'Theoretical' },
+      { id: 23, content: 'Истина', content_en: 'Truth' },
+      { id: 24, content: 'Ложь', content_en: 'Falsehood' },
       // Строка 7
-      { id: 25, content: '7' },
-      { id: 26, content: 'Парадоксальное' },
-      { id: 27, content: 'Новое' },
-      { id: 28, content: 'Старое' },
+      { id: 25, content: '7', content_en: '7' },
+      { id: 26, content: 'Парадоксальное', content_en: 'Paradoxical' },
+      { id: 27, content: 'Новое', content_en: 'New' },
+      { id: 28, content: 'Старое', content_en: 'Old' },
       // Строка 8
-      { id: 29, content: '8' },
-      { id: 30, content: 'Универсальное' },
-      { id: 31, content: 'Гармония' },
-      { id: 32, content: 'Какофония' }
+      { id: 29, content: '8', content_en: '8' },
+      { id: 30, content: 'Универсальное', content_en: 'Universal' },
+      { id: 31, content: 'Гармония', content_en: 'Harmony' },
+      { id: 32, content: 'Какофония', content_en: 'Cacophony' }
     ]
   },
   {
     level: 5,
     name: 'Взаимодействие',
+    name_en: 'Interaction',
     rows: 8,
     cols: 6,
     headers: ['Уровень', 'нейтрально', 'положительно', 'отрицательно', 'Другой', 'Отношение к детям'],
+    headers_en: ['Level', 'neutral', 'positive', 'negative', 'The Other', 'Attitude to children'],
     elements: [
       // Строка 1
-      { id: 1, content: '1' },
-      { id: 2, content: 'фиксация' },
-      { id: 3, content: 'концентрация' },
-      { id: 4, content: 'изоляция' },
-      { id: 5, content: 'как вещь' },
-      { id: 6, content: 'как вещь' },
+      { id: 1, content: '1', content_en: '1' },
+      { id: 2, content: 'фиксация', content_en: 'fixation' },
+      { id: 3, content: 'концентрация', content_en: 'concentration' },
+      { id: 4, content: 'изоляция', content_en: 'isolation' },
+      { id: 5, content: 'как вещь', content_en: 'as a thing' },
+      { id: 6, content: 'как вещь', content_en: 'as a thing' },
       // Строка 2
-      { id: 7, content: '2' },
-      { id: 8, content: 'семья' },
-      { id: 9, content: 'свои' },
-      { id: 10, content: 'чужие' },
-      { id: 11, content: 'как одна из вещей' },
-      { id: 12, content: 'как одна из вещей' },
+      { id: 7, content: '2', content_en: '2' },
+      { id: 8, content: 'семья', content_en: 'family' },
+      { id: 9, content: 'свои', content_en: 'ours' },
+      { id: 10, content: 'чужие', content_en: 'strangers' },
+      { id: 11, content: 'как одна из вещей', content_en: 'as one of the things' },
+      { id: 12, content: 'как одна из вещей', content_en: 'as one of the things' },
       // Строка 3
-      { id: 13, content: '3' },
-      { id: 14, content: 'борьба' },
-      { id: 15, content: 'доминирование' },
-      { id: 16, content: 'подчинение' },
-      { id: 17, content: 'как средство' },
-      { id: 18, content: 'как помеха' },
+      { id: 13, content: '3', content_en: '3' },
+      { id: 14, content: 'борьба', content_en: 'struggle' },
+      { id: 15, content: 'доминирование', content_en: 'domination' },
+      { id: 16, content: 'подчинение', content_en: 'submission' },
+      { id: 17, content: 'как средство', content_en: 'as a means' },
+      { id: 18, content: 'как помеха', content_en: 'as an obstacle' },
       // Строка 4
-      { id: 19, content: '4' },
-      { id: 20, content: 'правила' },
-      { id: 21, content: 'координация' },
-      { id: 22, content: 'взаимозависимость' },
-      { id: 23, content: 'как партнер' },
-      { id: 24, content: 'как роль в ролевой системе' },
+      { id: 19, content: '4', content_en: '4' },
+      { id: 20, content: 'правила', content_en: 'rules' },
+      { id: 21, content: 'координация', content_en: 'coordination' },
+      { id: 22, content: 'взаимозависимость', content_en: 'interdependence' },
+      { id: 23, content: 'как партнер', content_en: 'as a partner' },
+      { id: 24, content: 'как роль в ролевой системе', content_en: 'as a role in a role system' },
       // Строка 5
-      { id: 25, content: '5' },
-      { id: 26, content: 'импровизация' },
-      { id: 27, content: 'свобода' },
-      { id: 28, content: 'непредсказуемость' },
-      { id: 29, content: 'конкурент' },
-      { id: 30, content: 'как фактор неопределенности' },
+      { id: 25, content: '5', content_en: '5' },
+      { id: 26, content: 'импровизация', content_en: 'improvisation' },
+      { id: 27, content: 'свобода', content_en: 'freedom' },
+      { id: 28, content: 'непредсказуемость', content_en: 'unpredictability' },
+      { id: 29, content: 'конкурент', content_en: 'competitor' },
+      { id: 30, content: 'как фактор неопределенности', content_en: 'as a factor of uncertainty' },
       // Строка 6
-      { id: 31, content: '6' },
-      { id: 32, content: 'диалог' },
-      { id: 33, content: 'обоснование' },
-      { id: 34, content: 'опровержение' },
-      { id: 35, content: 'собеседник' },
-      { id: 36, content: 'коллега' },
+      { id: 31, content: '6', content_en: '6' },
+      { id: 32, content: 'диалог', content_en: 'dialogue' },
+      { id: 33, content: 'обоснование', content_en: 'justification' },
+      { id: 34, content: 'опровержение', content_en: 'refutation' },
+      { id: 35, content: 'собеседник', content_en: 'interlocutor' },
+      { id: 36, content: 'коллега', content_en: 'colleague' },
       // Строка 7
-      { id: 37, content: '7' },
-      { id: 38, content: 'оригинальность подхода' },
-      { id: 39, content: 'новаторство' },
-      { id: 40, content: 'разрушение традиции' },
-      { id: 41, content: 'мыслитель' },
-      { id: 42, content: 'мыслящее существо' },
+      { id: 37, content: '7', content_en: '7' },
+      { id: 38, content: 'оригинальность подхода', content_en: 'originality of approach' },
+      { id: 39, content: 'новаторство', content_en: 'innovation' },
+      { id: 40, content: 'разрушение традиции', content_en: 'breaking tradition' },
+      { id: 41, content: 'мыслитель', content_en: 'thinker' },
+      { id: 42, content: 'мыслящее существо', content_en: 'a thinking being' },
       // Строка 8
-      { id: 43, content: '8' },
-      { id: 44, content: 'моделирование чужого сознания' },
-      { id: 45, content: 'Мультиверсум' },
-      { id: 46, content: 'Абсолютная эмпатия' },
-      { id: 47, content: 'Другая вселенная' },
-      { id: 48, content: 'Другая вселенная' }
+      { id: 43, content: '8', content_en: '8' },
+      { id: 44, content: 'моделирование чужого сознания', content_en: "modeling another's co-knowledge" },
+      { id: 45, content: 'Мультиверсум', content_en: 'Multiverse' },
+      { id: 46, content: 'Абсолютная эмпатия', content_en: 'Absolute empathy' },
+      { id: 47, content: 'Другая вселенная', content_en: 'Another universe' },
+      { id: 48, content: 'Другая вселенная', content_en: 'Another universe' }
     ]
   },
   {
     level: 6,
     name: 'Эпоха',
+    name_en: 'Era',
     rows: 8,
     cols: 2,
     headers: ['Уровень', 'Эпоха'],
+    headers_en: ['Level', 'Era'],
     elements: [
       // Строка 1
-      { id: 1, content: '1' },
-      { id: 2, content: 'Охотники' },
+      { id: 1, content: '1', content_en: '1' },
+      { id: 2, content: 'Охотники', content_en: 'Hunters' },
       // Строка 2
-      { id: 3, content: '2' },
-      { id: 4, content: 'Аграрии' },
+      { id: 3, content: '2', content_en: '2' },
+      { id: 4, content: 'Аграрии', content_en: 'Agrarians' },
       // Строка 3
-      { id: 5, content: '3' },
-      { id: 6, content: 'Античные империи' },
+      { id: 5, content: '3', content_en: '3' },
+      { id: 6, content: 'Античные империи', content_en: 'Ancient empires' },
       // Строка 4
-      { id: 7, content: '4' },
-      { id: 8, content: 'Средневековье' },
+      { id: 7, content: '4', content_en: '4' },
+      { id: 8, content: 'Средневековье', content_en: 'The Middle Ages' },
       // Строка 5
-      { id: 9, content: '5' },
-      { id: 10, content: 'Возрождение-Реформация' },
+      { id: 9, content: '5', content_en: '5' },
+      { id: 10, content: 'Возрождение-Реформация', content_en: 'Renaissance-Reformation' },
       // Строка 6
-      { id: 11, content: '6' },
-      { id: 12, content: 'индустриальный век' },
+      { id: 11, content: '6', content_en: '6' },
+      { id: 12, content: 'индустриальный век', content_en: 'Industrial age' },
       // Строка 7
-      { id: 13, content: '7' },
-      { id: 14, content: 'XX век' },
+      { id: 13, content: '7', content_en: '7' },
+      { id: 14, content: 'XX век', content_en: '20th century' },
       // Строка 8
-      { id: 15, content: '8' },
-      { id: 16, content: 'Наше время' }
+      { id: 15, content: '8', content_en: '8' },
+      { id: 16, content: 'Наше время', content_en: 'Our time' }
     ]
   },
   {
     level: 7,
     name: 'Темперамент',
+    name_en: 'Temperament',
     rows: 4,
     cols: 5,
     headers: ['Темперамент', 'Самый-самый', 'Смех - слезы', 'Агрессия - депрессия', 'Самооценка'],
+    headers_en: ['Temperament', 'The most', 'Laughter - tears', 'Aggression - depression', 'Self-esteem'],
     elements: [
       // Строка 1
-      { id: 1, content: 'Холерик' },
-      { id: 2, content: 'Быстрый' },
-      { id: 3, content: 'Сарказм' },
-      { id: 4, content: 'Агрессия' },
-      { id: 5, content: 'завышенная' },
+      { id: 1, content: 'Холерик', content_en: 'Choleric' },
+      { id: 2, content: 'Быстрый', content_en: 'Fast' },
+      { id: 3, content: 'Сарказм', content_en: 'Sarcasm' },
+      { id: 4, content: 'Агрессия', content_en: 'Aggression' },
+      { id: 5, content: 'завышенная', content_en: 'inflated' },
       // Строка 2
-      { id: 6, content: 'Сангвиник' },
-      { id: 7, content: 'Доброжелательный' },
-      { id: 8, content: 'Юмор' },
-      { id: 9, content: 'Бодрость' },
-      { id: 10, content: 'положительная' },
+      { id: 6, content: 'Сангвиник', content_en: 'Sanguine' },
+      { id: 7, content: 'Доброжелательный', content_en: 'Friendly' },
+      { id: 8, content: 'Юмор', content_en: 'Humor' },
+      { id: 9, content: 'Бодрость', content_en: 'Cheerfulness' },
+      { id: 10, content: 'положительная', content_en: 'positive' },
       // Строка 3
-      { id: 11, content: 'Флегматик' },
-      { id: 12, content: 'Выносливый' },
-      { id: 13, content: 'Нейтрален' },
-      { id: 14, content: 'Невозмутимость' },
-      { id: 15, content: 'непонятно какая' },
+      { id: 11, content: 'Флегматик', content_en: 'Phlegmatic' },
+      { id: 12, content: 'Выносливый', content_en: 'Enduring' },
+      { id: 13, content: 'Нейтрален', content_en: 'Neutral' },
+      { id: 14, content: 'Невозмутимость', content_en: 'Composure' },
+      { id: 15, content: 'непонятно какая', content_en: 'unclear' },
       // Строка 4
-      { id: 16, content: 'Меланхолик' },
-      { id: 17, content: 'Чувствительный' },
-      { id: 18, content: 'Слезы' },
-      { id: 19, content: 'Депрессия' },
-      { id: 20, content: 'неустойчивая' }
+      { id: 16, content: 'Меланхолик', content_en: 'Melancholic' },
+      { id: 17, content: 'Чувствительный', content_en: 'Sensitive' },
+      { id: 18, content: 'Слезы', content_en: 'Tears' },
+      { id: 19, content: 'Депрессия', content_en: 'Depression' },
+      { id: 20, content: 'неустойчивая', content_en: 'unstable' }
     ]
   },
   {
     level: 8,
     name: 'Кодировки',
+    name_en: 'Encodings',
     rows: 3,
     cols: 7,
     headers: ['Кодировки', '1', '2', '3', '12', '23', '13'],
+    headers_en: ['Encodings', '1', '2', '3', '12', '23', '13'],
     elements: [
       // Строка 1
-      { id: 1, content: 'мелкие' },
-      { id: 2, content: 'ухо' },
-      { id: 3, content: 'глаз' },
-      { id: 4, content: 'рука' },
-      { id: 5, content: 'обоняние' },
-      { id: 6, content: 'вкус' },
-      { id: 7, content: 'интуиция' },
+      { id: 1, content: 'мелкие', content_en: 'small' },
+      { id: 2, content: 'ухо', content_en: 'ear' },
+      { id: 3, content: 'глаз', content_en: 'eye' },
+      { id: 4, content: 'рука', content_en: 'hand' },
+      { id: 5, content: 'обоняние', content_en: 'smell' },
+      { id: 6, content: 'вкус', content_en: 'taste' },
+      { id: 7, content: 'интуиция', content_en: 'intuition' },
       // Строка 2
-      { id: 8, content: 'средние' },
-      { id: 9, content: 'текст' },
-      { id: 10, content: 'картинка' },
-      { id: 11, content: 'схема' },
-      { id: 12, content: 'таблица' },
-      { id: 13, content: 'диаграмма' },
-      { id: 14, content: 'иллюстрация' },
+      { id: 8, content: 'средние', content_en: 'medium' },
+      { id: 9, content: 'текст', content_en: 'text' },
+      { id: 10, content: 'картинка', content_en: 'picture' },
+      { id: 11, content: 'схема', content_en: 'diagram' },
+      { id: 12, content: 'таблица', content_en: 'table' },
+      { id: 13, content: 'диаграмма', content_en: 'chart' },
+      { id: 14, content: 'иллюстрация', content_en: 'illustration' },
       // Строка 3
-      { id: 15, content: 'крупные' },
-      { id: 16, content: 'образы' },
-      { id: 17, content: 'смыслы' },
-      { id: 18, content: 'сценарии' },
-      { id: 19, content: 'видения' },
-      { id: 20, content: 'метафоры' },
-      { id: 21, content: 'эвристики' }
+      { id: 15, content: 'крупные', content_en: 'large' },
+      { id: 16, content: 'образы', content_en: 'images' },
+      { id: 17, content: 'смыслы', content_en: 'meanings' },
+      { id: 18, content: 'сценарии', content_en: 'scenarios' },
+      { id: 19, content: 'видения', content_en: 'visions' },
+      { id: 20, content: 'метафоры', content_en: 'metaphors' },
+      { id: 21, content: 'эвристики', content_en: 'heuristics' }
     ]
   }
   // Добавьте больше уровней здесь
 ];
+
+// ==== Мультиязычность (RU/EN) ====
+const I18N = {
+  ru: {
+    title: 'Расставь элементы правильно',
+    desc: 'ОПИСАНИЕ СИСТЕМЫ',
+    series: 'Мышление - Со-знание - Взаимодействие',
+    btnStart: 'ИГРА',
+    btnCheck: 'ГОТОВО',
+    btnRestart: 'СНАЧАЛА',
+    btnPrev: '← Предыдущий',
+    btnNext: 'Следующий →',
+    refDefault: 'Правильное расположение:',
+    sufxPlace: ' - Поставь на место:',
+    sufxCorrect: ' - Правильное расположение:',
+    congrats: '🎉 Поздравляем!',
+    congratsText: 'Вы правильно расставили все элементы!',
+    resultTitle: 'Результат:',
+    correctOf: (c, t) => `Правильно: ${c} из ${t}`,
+    incorrect: (n) => `Неправильно: ${n}`,
+    hintRed: 'Неправильно поставленные элементы подсвечены красным.',
+    switchLabel: 'EN',
+    backAria: 'Вернуться в Дискурс',
+    backTitle: 'Вернуться в Дискурс'
+  },
+  en: {
+    title: 'Arrange the elements correctly',
+    desc: 'SYSTEM DESCRIPTION',
+    series: 'Thinking - Co-knowledge - Interaction',
+    btnStart: 'PLAY',
+    btnCheck: 'DONE',
+    btnRestart: 'RESTART',
+    btnPrev: '← Previous',
+    btnNext: 'Next →',
+    refDefault: 'Correct arrangement:',
+    sufxPlace: ' - Put in place:',
+    sufxCorrect: ' - Correct arrangement:',
+    congrats: '🎉 Congratulations!',
+    congratsText: 'You arranged all the elements correctly!',
+    resultTitle: 'Result:',
+    correctOf: (c, t) => `Correct: ${c} of ${t}`,
+    incorrect: (n) => `Incorrect: ${n}`,
+    hintRed: 'Incorrectly placed elements are highlighted in red.',
+    switchLabel: 'RU',
+    backAria: 'Back to Discourse',
+    backTitle: 'Back to Discourse'
+  }
+};
+
+function discourseUrl() {
+  return currentLang === 'en'
+    ? 'https://jfeldman777.github.io/gala/en.html?p=10.3.3'
+    : 'https://jfeldman777.github.io/gala/index.html?p=10.3.3';
+}
+
+function getLang() {
+  try {
+    const url = new URLSearchParams(window.location.search).get('lang');
+    if (url === 'en' || url === 'ru') return url;
+    const saved = localStorage.getItem('selfTestLang');
+    if (saved === 'en' || saved === 'ru') return saved;
+  } catch (e) { /* ignore */ }
+  return 'ru';
+}
+
+let currentLang = getLang();
+function t() { return I18N[currentLang] || I18N.ru; }
+function levelName(level) {
+  return (currentLang === 'en' && level.name_en) ? level.name_en : level.name;
+}
+function levelHeaders(level) {
+  return (currentLang === 'en' && level.headers_en) ? level.headers_en : level.headers;
+}
+function cellContent(element) {
+  if (!element) return '';
+  return (currentLang === 'en' && element.content_en != null) ? element.content_en : element.content;
+}
+
+function applyStaticI18n() {
+  const s = t();
+  document.documentElement.lang = currentLang;
+  document.title = currentLang === 'en' ? ('Game: ' + s.title) : ('Игра: ' + s.title);
+  const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+  setText('start-game-btn', s.btnStart);
+  setText('check-btn', s.btnCheck);
+  setText('restart-btn', s.btnRestart);
+  setText('prev-level-btn', s.btnPrev);
+  setText('next-level-btn', s.btnNext);
+  const h1 = document.querySelector('.container h1'); if (h1) h1.textContent = s.title;
+  const descBtn = document.querySelector('.desc-btn');
+  if (descBtn) { descBtn.textContent = s.desc; descBtn.setAttribute('href', 'help.html?lang=' + currentLang); }
+  const seriesEl = document.querySelector('a[href^="thinking-series"]');
+  if (seriesEl) {
+    seriesEl.textContent = s.series;
+    // Игра «Мышление-Сознание-Взаимодействие» ещё не переведена — прячем ссылку в EN
+    seriesEl.parentElement.style.display = currentLang === 'en' ? 'none' : '';
+  }
+  const langBtn = document.getElementById('lang-switch');
+  if (langBtn) langBtn.textContent = s.switchLabel;
+  const backBtn = document.getElementById('discourse-back');
+  if (backBtn) {
+    backBtn.href = discourseUrl();
+    backBtn.setAttribute('aria-label', s.backAria);
+    backBtn.setAttribute('title', s.backTitle);
+  }
+}
+
+function setLang(lang) {
+  if (lang !== 'en' && lang !== 'ru') return;
+  currentLang = lang;
+  try { localStorage.setItem('selfTestLang', lang); } catch (e) { /* ignore */ }
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('lang', lang);
+    window.history.replaceState({}, '', url);
+  } catch (e) { /* ignore */ }
+  applyStaticI18n();
+  initLevel(currentLevel);
+}
 
 let currentLevel = 0;
 let correctOrder = [];
@@ -394,6 +529,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
+  const langBtn = document.getElementById('lang-switch');
+  if (langBtn) {
+    langBtn.addEventListener('click', function() {
+      setLang(currentLang === 'en' ? 'ru' : 'en');
+    });
+  }
+
+  applyStaticI18n();
   initLevel(0);
   updateLevelButtons();
 });
@@ -516,11 +659,12 @@ function createReferenceTable(level, isGameMode) {
   
   // Обновляем название уровня
   const levelNameEl = document.getElementById('level-name');
-  if (levelNameEl && level.name) {
+  const name = levelName(level);
+  if (levelNameEl && name) {
     if (isGameMode) {
-      levelNameEl.textContent = level.name + ' - Поставь на место:';
+      levelNameEl.textContent = name + t().sufxPlace;
     } else {
-      levelNameEl.textContent = level.name + ' - Правильное расположение:';
+      levelNameEl.textContent = name + t().sufxCorrect;
     }
   }
   
@@ -540,7 +684,7 @@ function createReferenceTable(level, isGameMode) {
     // Создаем заголовок таблицы (не перетаскивается)
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const headers = level.headers || ['Уровень', 'Тип сознания', 'Положительное', 'Отрицательное'];
+    const headers = levelHeaders(level) || ['Уровень', 'Тип сознания', 'Положительное', 'Отрицательное'];
     headers.forEach(headerText => {
     const th = document.createElement('th');
     th.textContent = headerText;
@@ -562,7 +706,7 @@ function createReferenceTable(level, isGameMode) {
       const index = row * level.cols + col;
       const element = orderToUse[index];
       const td = document.createElement('td');
-      td.textContent = element ? element.content : '';
+      td.textContent = cellContent(element);
       td.style.padding = '10px';
       td.style.border = '1px solid #cbd5e1';
       td.style.backgroundColor = row % 2 === 0 ? '#ffffff' : '#f8fafc';
@@ -769,11 +913,12 @@ function checkGame() {
   
   const totalDataCells = level.rows * (level.cols - 1); // Все ячейки кроме первого столбца
   
+  const s = t();
   if (incorrectCount === 0) {
-    resultMessage.innerHTML = '<h2>🎉 Поздравляем!</h2><p>Вы правильно расставили все элементы!</p>';
+    resultMessage.innerHTML = `<h2>${s.congrats}</h2><p>${s.congratsText}</p>`;
     resultMessage.className = 'result-message success';
   } else {
-    resultMessage.innerHTML = `<h2>Результат:</h2><p>Правильно: ${correctCount} из ${totalDataCells}</p><p>Неправильно: ${incorrectCount}</p><p>Неправильно поставленные элементы подсвечены красным.</p>`;
+    resultMessage.innerHTML = `<h2>${s.resultTitle}</h2><p>${s.correctOf(correctCount, totalDataCells)}</p><p>${s.incorrect(incorrectCount)}</p><p>${s.hintRed}</p>`;
     resultMessage.className = 'result-message error';
   }
   
